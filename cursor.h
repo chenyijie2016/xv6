@@ -16,11 +16,12 @@ struct {
   uint r;  // Read index
   uint w;  // Write index
   uint e;  // Edit index
+  uint d;  // End index
 } input;
 
 int cursorGetPosition();
 void cursorSetPosition(int pos);
-void cursorMoveLeft();
-void cursorMoveRight();
+int cursorMoveLeft();
+int cursorMoveRight();
 
 #endif

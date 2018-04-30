@@ -17,18 +17,16 @@ void cursorSetPosition(int pos){
     return;
 }
 
-void cursorMoveLeft(){
+int cursorMoveLeft(){
     int pos = cursorGetPosition();
     pos--;
     cursorSetPosition(pos);
-    input.e--;
-    return;
+    return 1;
 }
 
-void cursorMoveRight(){
+int cursorMoveRight(){
     int pos = cursorGetPosition();
     pos++;
     cursorSetPosition(pos);
-    input.e++;
-    return;
+    return 1;
 }
