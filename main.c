@@ -12,6 +12,7 @@ static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
+void printhello();
 extern pde_t *kpgdir;
 extern char end[]; // first address after kernel loaded from ELF file
 
@@ -51,7 +52,7 @@ mpenter(void)
   mpmain();
 }
 
-static void print_hello(){
+void printhello(){
   int pos;
   // Cursor position: col + 80*row.
   outb(CRTPORT, 14);
@@ -60,25 +61,10 @@ static void print_hello(){
   pos |= inb(CRTPORT+1);
   char* s = "hello";
   int i,j,k;
-  for(i = 0; i < 15; i++){
-    for(j = 0; j < 15; j++){
-      for(k = 0; k < 5; k++){
-        int c = s[k];
-        int shift = (i<<12) | (j<<8);
-        crt[pos++] = (c&0xff) | shift;
-        if((pos/80) >= 24){  // Scroll up.
-          memmove(crt, crt+80, sizeof(crt[0])*23*80);
-          pos -= 80;
-          memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
-        }
-        outb(CRTPORT, 14);
-        outb(CRTPORT+1, pos>>8);
-        outb(CRTPORT, 15);
-        outb(CRTPORT+1, pos);
-        crt[pos] = ' ' | 0x0700;
-      }
-    }
-  }
+  for(i = 0; i < 16; i++)
+    for(j = 0; j < 16; j++)
+      for(k = 0; k < 5; k++)
+        cgaputcolorfulc(s[k], i, j);
 }
 
 // Common CPU setup code.
@@ -87,8 +73,8 @@ mpmain(void)
 {
   cprintf("cpu%d: starting %d\n", cpuid(), cpuid());
   idtinit();       // load idt register
-  print_hello();
   xchg(&(mycpu()->started), 1); // tell startothers() we're up
+  printhello();
   scheduler();     // start running processes
 }
 

@@ -15,7 +15,6 @@
 static void consputc(int);
 
 static int panicked = 0;
-
 static struct {
   struct spinlock lock;
   int locking;
@@ -148,6 +147,57 @@ cgaputc(int c)
     memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
   }
 
+  outb(CRTPORT, 14);
+  outb(CRTPORT+1, pos>>8);
+  outb(CRTPORT, 15);
+  outb(CRTPORT+1, pos);
+  crt[pos] = ' ' | 0x0700;
+}
+
+//wdcolor: word color       one-digut hex number
+//bgcolor: backround color  one-digit hex nunmber
+/*type: 0x0--black
+        0x1--dark blue
+        0x2--dark green
+        0x3--dark cyan
+        0x4--dark red
+        0x5--dark pink
+        0x6--brown
+        0x7--bright grey
+        0x8--dark grey
+        0x9--bright blue
+        0xA--bright green
+        0xB--bright cyan
+        0xC--bright red
+        0xD--bright pink
+        0xE--bright yellow
+        0xF--white
+*/
+void
+cgaputcolorfulc(int c, int wdcolor, int bgcolor)
+{
+  if(wdcolor<0 || wdcolor>=16 || bgcolor<0 || wdcolor>=16)
+  return;
+  int pos;
+  outb(CRTPORT, 14);
+  pos = inb(CRTPORT+1) << 8;
+  outb(CRTPORT, 15);
+  pos |= inb(CRTPORT+1);
+  if(c == '\n')
+    pos += 80 - pos%80;
+  else if(c == BACKSPACE){
+    if(pos > 0) --pos;
+  } else{ 
+    int shift =(wdcolor<<12) | (bgcolor<<8);
+    crt[pos++] = (c&0xff) | shift;
+  }
+  if(pos < 0 || pos > 25*80)
+    panic("pos under/overflow");
+  if((pos/80) >= 24){  // Scroll up.
+    memmove(crt, crt+80, sizeof(crt[0])*23*80);
+    pos -= 80;
+    memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
+  }
   outb(CRTPORT, 14);
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
