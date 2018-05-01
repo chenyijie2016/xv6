@@ -30,3 +30,4 @@ int cursorMoveRight(){
     cursorSetPosition(pos);
     return 1;
 }
+

@@ -1,6 +1,3 @@
-// Console input and output.
-// Input is from the keyboard or serial port.
-// Output is written to the screen and serial port.
 #include "cursor.h"
 #include "defs.h"
 #include "param.h"
@@ -20,9 +17,7 @@ static struct {
   int locking;
 } cons;
 
-static void
-printint(int xx, int base, int sign)
-{
+static void printint(int xx, int base, int sign){
   static char digits[] = "0123456789abcdef";
   char buf[16];
   int i;
@@ -44,12 +39,8 @@ printint(int xx, int base, int sign)
   while(--i >= 0)
     consputc(buf[i]);
 }
-//PAGEBREAK: 50
 
-// Print to the console. only understands %d, %x, %p, %s.
-void
-cprintf(char *fmt, ...)
-{
+void cprintf(char *fmt, ...){
   int i, c, locking;
   uint *argp;
   char *s;
@@ -99,9 +90,7 @@ cprintf(char *fmt, ...)
     release(&cons.lock);
 }
 
-void
-panic(char *s)
-{
+void panic(char *s){
   int i;
   uint pcs[10];
 
@@ -119,11 +108,7 @@ panic(char *s)
     ;
 }
 
-//PAGEBREAK: 50
-
-static void
-cgaputc(int c)
-{
+static void cgaputc(int c){
   int pos;
 
   // Cursor position: col + 80*row.
@@ -173,9 +158,7 @@ cgaputc(int c)
         0xE--bright yellow
         0xF--white
 */
-void
-cgaputcolorfulc(int c, int wdcolor, int bgcolor)
-{
+void cgaputcolorfulc(int c, int wdcolor, int bgcolor){
   if(wdcolor<0 || wdcolor>=16 || bgcolor<0 || wdcolor>=16)
   return;
   int pos;
@@ -205,9 +188,7 @@ cgaputcolorfulc(int c, int wdcolor, int bgcolor)
   crt[pos] = ' ' | 0x0700;
 }
 
-void
-consputc(int c)
-{
+void consputc(int c){
   if(panicked){
     cli();
     for(;;)
@@ -221,9 +202,12 @@ consputc(int c)
   cgaputc(c);
 }
 
-void 
-killLine()
-{
+void killLine(){
+  int i;
+  for(i = input.e; i < input.d; i++){
+    cursorMoveRight();
+    input.e++;
+  }
   while(input.d != input.w &&
       input.buf[(input.d-1) % INPUT_BUF] != '\n'){
       input.e--;
@@ -232,9 +216,7 @@ killLine()
   }
 }
 
-void 
-outputChar(int c)
-{
+void outputChar(int c){
   if(input.d == input.e){
     input.buf[input.e++ % INPUT_BUF] = c;
     input.d++;
@@ -262,9 +244,7 @@ outputChar(int c)
   }
 }
 
-void
-removeChar()
-{
+void removeChar(){
   if(input.d == input.e){
     input.e--;
     input.d--;
@@ -284,9 +264,27 @@ removeChar()
   }
 }
 
-void
-consoleintr(int (*getc)(void))
-{
+void loadPrevHis(){
+  if(currentLine == firstLine)
+    return;
+  killLine();
+  currentLine--;
+  int i;
+  for(i = 0; i < hisLength[currentLine]; i++)
+    outputChar(hisContent[currentLine][i]);
+}
+
+void loadNextHis(){
+  if(currentLine == hisLine)
+    return;
+  killLine();
+  currentLine++;
+  int i;
+  for(i = 0; i < hisLength[currentLine]; i++)
+    outputChar(hisContent[currentLine][i]);
+}
+
+void consoleintr(int (*getc)(void)){
   int c, doprocdump = 0;
 
   acquire(&cons.lock);
@@ -302,6 +300,12 @@ consoleintr(int (*getc)(void))
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w)
         removeChar();
+      break;
+    case KEY_UP:
+      loadPrevHis();
+      break;
+    case KEY_DN:
+      loadNextHis();
       break;
     case KEY_LF:
       if(input.e != input.w){
@@ -333,9 +337,7 @@ consoleintr(int (*getc)(void))
   }
 }
 
-int
-consoleread(struct inode *ip, char *dst, int n)
-{
+int consoleread(struct inode *ip, char *dst, int n){
   uint target;
   int c;
 
@@ -362,8 +364,20 @@ consoleread(struct inode *ip, char *dst, int n)
     }
     *dst++ = c;
     --n;
-    if(c == '\n')
+    if(c == '\n'){
+      if(hisPos != 0){
+        hisLength[hisLine] = hisPos;
+        hisPos = 0;
+        hisLine = (hisLine+1) % HISTORY_LOAD;
+        currentLine = hisLine;
+        hisLength[hisLine] = 0;
+        if(hisLength[hisLine] != 0)
+        firstLine = hisLine + 1;
+      }
       break;
+    }
+    else
+      hisContent[hisLine][hisPos++] = c;
   }
   release(&cons.lock);
   ilock(ip);
@@ -371,9 +385,7 @@ consoleread(struct inode *ip, char *dst, int n)
   return target - n;
 }
 
-int
-consolewrite(struct inode *ip, char *buf, int n)
-{
+int consolewrite(struct inode *ip, char *buf, int n){
   int i;
 
   iunlock(ip);
@@ -386,9 +398,7 @@ consolewrite(struct inode *ip, char *buf, int n)
   return n;
 }
 
-void
-consoleinit(void)
-{
+void consoleinit(void){
   initlock(&cons.lock, "console");
 
   devsw[CONSOLE].write = consolewrite;
@@ -397,4 +407,3 @@ consoleinit(void)
 
   ioapicenable(IRQ_KBD, 0);
 }
-
