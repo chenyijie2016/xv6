@@ -16,3 +16,4 @@ mkfs
 .gdbinit
 /fmt/*
 /.idea/*
+/.vscode/*
