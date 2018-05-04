@@ -91,6 +91,18 @@ sys_write(void)
 }
 
 int
+sys_cwrite(void)
+{
+  struct file *f;
+  int n, bgcolor, wdcolor;
+  char *p;
+
+  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0 || argint(3, &bgcolor) < 0 || argint(4, &wdcolor) < 0)
+    return -1;
+  return filecwrite(f, p, n, bgcolor, wdcolor);
+}
+
+int
 sys_close(void)
 {
   int fd;

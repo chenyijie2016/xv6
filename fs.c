@@ -512,6 +512,38 @@ writei(struct inode *ip, char *src, uint off, uint n)
   return n;
 }
 
+int
+cwritei(struct inode *ip, char *src, uint off, uint n, int bgcolor, int wdcolor)
+{
+  uint tot, m;
+  struct buf *bp;
+
+  if(ip->type == T_DEV){
+    if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
+      return -1;
+    return devsw[ip->major].cwrite(ip, src, n, bgcolor, wdcolor);
+  }
+
+  if(off > ip->size || off + n < off)
+    return -1;
+  if(off + n > MAXFILE*BSIZE)
+    return -1;
+
+  for(tot=0; tot<n; tot+=m, off+=m, src+=m){
+    bp = bread(ip->dev, bmap(ip, off/BSIZE));
+    m = min(n - tot, BSIZE - off%BSIZE);
+    memmove(bp->data + off%BSIZE, src, m);
+    log_write(bp);
+    brelse(bp);
+  }
+
+  if(n > 0 && off > ip->size){
+    ip->size = off;
+    iupdate(ip);
+  }
+  return n;
+}
+
 //PAGEBREAK!
 // Directories
 

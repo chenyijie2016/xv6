@@ -21,7 +21,7 @@ void            consoleinit(void);
 void            cprintf(char*, ...);
 void            consoleintr(int(*)(void));
 void            panic(char*) __attribute__((noreturn));
-void            cgaputcolorfulc(int, int, int);
+void            cgaputcc(int, int, int);
 
 // exec.c
 int             exec(char*, char**);
@@ -34,6 +34,7 @@ void            fileinit(void);
 int             fileread(struct file*, char*, int n);
 int             filestat(struct file*, struct stat*);
 int             filewrite(struct file*, char*, int n);
+int             filecwrite(struct file*, char*, int n, int, int);
 
 // fs.c
 void            readsb(int dev, struct superblock *sb);
@@ -53,6 +54,7 @@ struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
+int             cwritei(struct inode*, char*, uint, uint, int, int);
 
 // ide.c
 void            ideinit(void);

@@ -155,3 +155,43 @@ filewrite(struct file *f, char *addr, int n)
   panic("filewrite");
 }
 
+int
+filecwrite(struct file *f, char *addr, int n, int bgcolor, int wdcolor)
+{
+  int r;
+
+  if(f->writable == 0)
+    return -1;
+  if(f->type == FD_PIPE)
+    return pipewrite(f->pipe, addr, n);
+  if(f->type == FD_INODE){
+    // write a few blocks at a time to avoid exceeding
+    // the maximum log transaction size, including
+    // i-node, indirect block, allocation blocks,
+    // and 2 blocks of slop for non-aligned writes.
+    // this really belongs lower down, since writei()
+    // might be writing a device like the console.
+    int max = ((MAXOPBLOCKS-1-1-2) / 2) * 512;
+    int i = 0;
+    while(i < n){
+      int n1 = n - i;
+      if(n1 > max)
+        n1 = max;
+
+      begin_op();
+      ilock(f->ip);
+      if ((r = cwritei(f->ip, addr + i, f->off, n1, bgcolor, wdcolor)) > 0)
+        f->off += r;
+      iunlock(f->ip);
+      end_op();
+
+      if(r < 0)
+        break;
+      if(r != n1)
+        panic("short filewrite");
+      i += r;
+    }
+    return i == n ? n : -1;
+  }
+  panic("filewrite");
+}

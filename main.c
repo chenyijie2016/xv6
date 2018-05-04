@@ -64,7 +64,7 @@ void printhello(){
   for(i = 0; i < 16; i++)
     for(j = 0; j < 16; j++)
       for(k = 0; k < 5; k++)
-        cgaputcolorfulc(s[k], i, j);
+        cgaputcc(s[k], i, j);
 }
 
 // Common CPU setup code.

@@ -24,6 +24,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int date(struct rtcdate *);
+int cwrite(int, void*, int, int, int);
 
 // ulib.c
 int stat(char*, struct stat*);
@@ -32,6 +33,7 @@ void *memmove(void*, void*, int);
 char* strchr(const char*, char c);
 int strcmp(const char*, const char*);
 void printf(int, char*, ...);
+void cprintf(int, int, int, char*, ...);
 char* gets(char*, int max);
 uint strlen(char*);
 void* memset(void*, int, uint);

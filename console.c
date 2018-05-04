@@ -139,8 +139,8 @@ static void cgaputc(int c){
   crt[pos] = ' ' | 0x0700;
 }
 
-//wdcolor: word color       one-digut hex number
-//bgcolor: backround color  one-digit hex nunmber
+//bgcolor: word color       one-digut hex number
+//wdcolor: backround color  one-digit hex nunmber
 /*type: 0x0--black
         0x1--dark blue
         0x2--dark green
@@ -158,8 +158,8 @@ static void cgaputc(int c){
         0xE--bright yellow
         0xF--white
 */
-void cgaputcolorfulc(int c, int wdcolor, int bgcolor){
-  if(wdcolor<0 || wdcolor>=16 || bgcolor<0 || wdcolor>=16)
+void cgaputcc(int c, int bgcolor, int wdcolor){
+  if(bgcolor<0 || bgcolor>=16 || wdcolor<0 || bgcolor>=16)
   return;
   int pos;
   outb(CRTPORT, 14);
@@ -171,7 +171,7 @@ void cgaputcolorfulc(int c, int wdcolor, int bgcolor){
   else if(c == BACKSPACE){
     if(pos > 0) --pos;
   } else{ 
-    int shift =(wdcolor<<12) | (bgcolor<<8);
+    int shift =(bgcolor<<12) | (wdcolor<<8);
     crt[pos++] = (c&0xff) | shift;
   }
   if(pos < 0 || pos > 25*80)
@@ -186,6 +186,20 @@ void cgaputcolorfulc(int c, int wdcolor, int bgcolor){
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
   crt[pos] = ' ' | 0x0700;
+}
+
+void conscputc(int c, int bgcolor, int wdcolor){
+    if(panicked){
+    cli();
+    for(;;)
+      ;
+  }
+
+  if(c == BACKSPACE){
+    uartputc('\b'); uartputc(' '); uartputc('\b');
+  } else
+    uartputc(c);
+  cgaputcc(c, bgcolor, wdcolor);
 }
 
 void consputc(int c){
@@ -398,11 +412,25 @@ int consolewrite(struct inode *ip, char *buf, int n){
   return n;
 }
 
+int consolecwrite(struct inode *ip, char *buf, int n, int bgcolor, int wdcolor){
+  int i;
+
+  iunlock(ip);
+  acquire(&cons.lock);
+  for(i = 0; i < n; i++)
+    conscputc(buf[i] & 0xff, bgcolor, wdcolor);
+  release(&cons.lock);
+  ilock(ip);
+
+  return n;
+}
+
 void consoleinit(void){
   initlock(&cons.lock, "console");
 
   devsw[CONSOLE].write = consolewrite;
   devsw[CONSOLE].read = consoleread;
+  devsw[CONSOLE].cwrite = consolecwrite;
   cons.locking = 1;
 
   ioapicenable(IRQ_KBD, 0);
