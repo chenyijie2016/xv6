@@ -133,7 +133,14 @@ runcmd(struct cmd *cmd)
 int
 getcmd(char *buf, int nbuf)
 {
-  cprintf(2, 0x0, 0xA, "$ ");
+  char d[128];
+  if(dir(d)){
+    printf(2, "dir failed\n");
+    exit();
+  }
+  cprintf(2, 0x0, 0x2, "thuss-os");
+  cprintf(2, 0x0, 0x9, d); 
+  printf(2, "$ ");
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
   if(buf[0] == 0) // EOF

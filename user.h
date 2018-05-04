@@ -25,6 +25,7 @@ int sleep(int);
 int uptime(void);
 int date(struct rtcdate *);
 int cwrite(int, void*, int, int, int);
+int dir(char*);
 
 // ulib.c
 int stat(char*, struct stat*);

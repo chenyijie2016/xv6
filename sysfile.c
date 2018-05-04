@@ -403,6 +403,22 @@ sys_chdir(void)
   iput(curproc->cwd);
   end_op();
   curproc->cwd = ip;
+  if((dirIndex == 1 && strncmp(path, "..", DIRSIZ) == 0) || strncmp(path, "." ,DIRSIZ) == 0)
+    return 0;
+  if(strncmp(path, "..", DIRSIZ) == 0){
+    do{
+      curDir[dirIndex--] = '\0';
+    } while(curDir[dirIndex] != '/');
+    curDir[dirIndex] = '\0';
+  }
+  else{
+    if(dirIndex >= FULLDIR)
+      return 0;
+    curDir[dirIndex++] = '/';
+    int pos = 0;
+    while(path[pos] != '\0')
+      curDir[dirIndex++] = path[pos++]; 
+  }
   return 0;
 }
 
@@ -454,4 +470,16 @@ sys_pipe(void)
   fd[0] = fd0;
   fd[1] = fd1;
   return 0;
+}
+
+int 
+sys_dir(void)
+{
+  char* dir;
+  if(argstr(0, &dir) < 0)
+    return -1;
+  int i ;
+  for(i = 0; i < FULLDIR; i++)
+    dir[i] = curDir[i];
+  return 0; 
 }

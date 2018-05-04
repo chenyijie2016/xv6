@@ -22,3 +22,4 @@
 #define SYS_close           21
 #define SYS_date            22
 #define SYS_cwrite          23
+#define SYS_dir             24
