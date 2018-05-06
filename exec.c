@@ -6,6 +6,9 @@
 #include "defs.h"
 #include "x86.h"
 #include "elf.h"
+#include "fs.h"
+
+#define FILE_PATH_LEN 1024
 
 int
 exec(char *path, char **argv)
@@ -19,12 +22,53 @@ exec(char *path, char **argv)
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
 
+  int length = strlen(path);
+  int found = 0;
+  int n;
+  char file_path[FILE_PATH_LEN];
+  struct env* pathenv = 0;
+
   begin_op();
 
   if((ip = namei(path)) == 0){
-    end_op();
-    cprintf("exec: fail\n");
-    return -1;
+    if (envNum > 0) {
+      pathenv = &(sysEnv.data[0]);
+    }
+
+    while (pathenv && !found) {
+      //clear
+      memset(file_path, 0, sizeof(char) * FILE_PATH_LEN);
+
+      int lenPathEnv = strlen(pathenv->text);
+      n = 0;
+
+      //copy
+      for(n=0; n < lenPathEnv; n++){
+        file_path[n] = pathenv->text[n];
+      }
+
+      //copy the path from parameter
+      for(n=0; n < length; n++){
+        file_path[lenPathEnv + n] = path[n];
+      }
+
+      //set string end
+      file_path[lenPathEnv + length] = '\0';
+
+      if((ip = namei(file_path)) != 0){
+        path = file_path;
+        found = 1;
+      }
+
+      pathenv = pathenv->next;
+    }
+    
+    // nout found
+    if(!found) {
+      end_op();
+      cprintf("exec: fail\n");
+      return -1;
+    }
   }
   ilock(ip);
   pgdir = 0;

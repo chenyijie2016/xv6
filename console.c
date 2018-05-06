@@ -9,6 +9,9 @@
 #include "mmu.h"
 #include "proc.h"
 
+struct envs sysEnv;
+uint envNum = 0;
+
 static void consputc(int);
 
 static int panicked = 0;
@@ -425,7 +428,28 @@ int consolecwrite(struct inode *ip, char *buf, int n, int bgcolor, int wdcolor){
   return n;
 }
 
-void consoleinit(void){
+// Don't check length!
+void setString(char s[], char* ori, uint len) {
+  uint i = 0;
+  for (; i < len; i++) {
+    s[i] = ori[i];
+  }
+  s[i] = 0;
+}
+
+void initEnv() {
+    // init first env;
+  if (envNum == 0) {
+    envNum = 1;
+    setString(sysEnv.data[0].name, "PATH", 4);
+    setString(sysEnv.data[0].text, "/", 1);
+    sysEnv.data[0].next = 0;
+  }
+}
+
+void consoleinit(void) {
+  initEnv();
+
   initlock(&cons.lock, "console");
 
   devsw[CONSOLE].write = consolewrite;
