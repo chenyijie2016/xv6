@@ -25,3 +25,4 @@
 #define SYS_dir             24
 // Add here
 #define SYS_set_env         25 
+#define SYS_get_env         26

@@ -108,6 +108,7 @@ extern int sys_cwrite(void);
 extern int sys_dir(void);
 // Add here
 extern int sys_set_env(void);
+extern int sys_get_env(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,6 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_dir]     sys_dir,
 // Add here
 [SYS_set_env] sys_set_env,
+[SYS_get_env] sys_get_env,
 };
 
 void

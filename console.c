@@ -436,8 +436,8 @@ void setString(char s[], char* ori, uint len) {
 
 void initEnv() {
     // init first env;
-  if (envNum == 0) {
-    envNum = 1;
+  {
+    sysEnv.envNum = 1;
     setString(sysEnv.data[0].name, "PATH", 4);
     setString(sysEnv.data[0].text[0], "/", 1);
     sysEnv.data[0].len = 1;

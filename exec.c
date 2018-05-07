@@ -31,7 +31,7 @@ exec(char *path, char **argv)
   begin_op();
 
   if((ip = namei(path)) == 0){
-    if (envNum > 0) {
+    if (sysEnv.envNum > 0) {
       pathenv = &(sysEnv.data[0]);
     }
 
@@ -163,7 +163,6 @@ exec(char *path, char **argv)
 
 // Add here
 struct envs sysEnv;
-uint envNum = 0;
 
 char*
 mstrcpy(char *s, char *t)
@@ -196,7 +195,7 @@ int sys_set_env(void) {
 
   uint i = 0;
 
-  for (; i < envNum; i++) {
+  for (; i < sysEnv.envNum; i++) {
     if (mstrcmp(name, sysEnv.data[i].name) == 0) {
       if (!add) {
         sysEnv.data[i].len = 0;
@@ -204,11 +203,11 @@ int sys_set_env(void) {
       break;
     }
   }
-  if (i == envNum) {
-    if (envNum == ENV_MAX_NUM) {
+  if (i == sysEnv.envNum) {
+    if (sysEnv.envNum == ENV_MAX_NUM) {
       return 2;
     }
-    envNum++;
+    sysEnv.envNum++;
     mstrcpy(sysEnv.data[i].name, name);
     sysEnv.data[i].len = 0;
   }
@@ -223,5 +222,30 @@ int sys_set_env(void) {
     return 1;
   }
 
+  return 0;
+}
+
+int sys_get_env(void) {
+  int type;
+  void* penv;
+  char* name;
+  argint(0, &type);
+  argstr(1, &penv);
+  argstr(2, &name);
+  if (type == 0) {
+    if (0 <= (int)penv && (int)penv < (int)sysEnv.envNum) {
+      strncpy(name, sysEnv.data[(int)penv].name, ENV_CONTENT_LEN);
+    }
+    return sysEnv.envNum;
+  }
+  else {
+    for (uint i = 0; i < sysEnv.envNum; i++) {
+      if (strncmp(name, sysEnv.data[i].name, ENV_CONTENT_LEN) == 0) {
+        memmove((void*)penv, (void*)(&(sysEnv.data[i])), (sizeof(struct env) + sizeof(char) - 1)/sizeof(char));
+        return 0;
+      }
+    }
+    return 1;
+  }
   return 0;
 }
