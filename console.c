@@ -434,14 +434,16 @@ void setString(char s[], char* ori, uint len) {
   s[i] = 0;
 }
 
+// fail to load function loadEnvFile;
+// int loadEnvFile();
+
 void initEnv() {
-    // init first env;
-  {
-    sysEnv.envNum = 1;
-    setString(sysEnv.data[0].name, "PATH", 4);
-    setString(sysEnv.data[0].text[0], "/", 1);
-    sysEnv.data[0].len = 1;
-  }
+  // init first env;
+  sysEnv.envNum = 1;
+  setString(sysEnv.data[0].name, "PATH", 4);
+  setString(sysEnv.data[0].text[0], "/", 1);
+  sysEnv.data[0].len = 1;
+  //loadEnvFile();
 }
 
 void consoleinit(void) {

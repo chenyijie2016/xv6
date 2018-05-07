@@ -178,9 +178,10 @@ UPROGS=\
 	_date\
 	_setenv\
 	_showenv\
+	_loadenv\
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs README ENV $(UPROGS)
+	./mkfs fs.img README ENV $(UPROGS)
 
 -include *.d
 
@@ -247,7 +248,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	printf.c umalloc.c setenv.c showenv.c\
+	printf.c umalloc.c setenv.c showenv.c loadenv.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

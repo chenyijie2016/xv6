@@ -189,39 +189,73 @@ int sys_set_env(void) {
   char* name;
   argstr(1, &name);
   char** argv;
-  argstr(2, &argv);
+  char* temp;
+  argstr(2, &temp);
+  argv = (char**)(int)(temp);
   int len;
   argint(3, &len);
 
   uint i = 0;
 
-  for (; i < sysEnv.envNum; i++) {
-    if (mstrcmp(name, sysEnv.data[i].name) == 0) {
-      if (!add) {
-        sysEnv.data[i].len = 0;
+  if (add == 2) {
+    for (; i < sysEnv.envNum; i++) {
+      if (mstrcmp(name, sysEnv.data[i].name) == 0) {
+        break;
       }
-      break;
     }
-  }
-  if (i == sysEnv.envNum) {
-    if (sysEnv.envNum == ENV_MAX_NUM) {
-      return 2;
+    if (i == sysEnv.envNum) {
+      if (sysEnv.envNum == ENV_MAX_NUM) {
+        return 2;
+      }
+      sysEnv.envNum++;
+      mstrcpy(sysEnv.data[i].name, name);
+      sysEnv.data[i].len = 0;
     }
-    sysEnv.envNum++;
-    mstrcpy(sysEnv.data[i].name, name);
-    sysEnv.data[i].len = 0;
+
+    for (int k = 0; k < sysEnv.data[i].len; k++) {
+      if (mstrcmp(temp, sysEnv.data[i].text[k]) == 0) {
+        return 1;
+      }
+    }
+    mstrcpy(sysEnv.data[i].text[sysEnv.data[i].len++], temp);
   }
+  else {
+    for (; i < sysEnv.envNum; i++) {
+      if (mstrcmp(name, sysEnv.data[i].name) == 0) {
+        if (!add) {
+          sysEnv.data[i].len = 0;
+        }
+        break;
+      }
+    }
+    if (i == sysEnv.envNum) {
+      if (sysEnv.envNum == ENV_MAX_NUM) {
+        return 2;
+      }
+      sysEnv.envNum++;
+      mstrcpy(sysEnv.data[i].name, name);
+      sysEnv.data[i].len = 0;
+    }
 
-  uint j = 0;
-
-  for (j = 0; j < len && (sysEnv.data[i].len) < ENV_CONTENT_NUM; j++, (sysEnv.data[i].len)++) {
-    mstrcpy(sysEnv.data[i].text[sysEnv.data[i].len], argv[j]);
+    uint j = 0;
+    for (j = 0; j < len && (sysEnv.data[i].len) < ENV_CONTENT_NUM; j++, (sysEnv.data[i].len)++) {
+      int ok = 1;
+      for (int k = 0; k < sysEnv.data[i].len; k++) {
+        if (mstrcmp(argv[j], sysEnv.data[i].text[k]) == 0) {
+          ok = 0;
+          break;
+        }
+      }
+      if (ok) {
+        mstrcpy(sysEnv.data[i].text[sysEnv.data[i].len], argv[j]);
+      }
+    }
+    if (j < len && sysEnv.data[i].len == ENV_CONTENT_NUM) {
+      return 1;
+    }
+    // TODO:save!
   }
-
-  if (j < len && sysEnv.data[i].len == ENV_CONTENT_NUM) {
-    return 1;
-  }
-
+  
   return 0;
 }
 
