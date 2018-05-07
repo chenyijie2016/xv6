@@ -27,6 +27,10 @@ int date(struct rtcdate *);
 int cwrite(int, void*, int, int, int);
 int dir(char*);
 
+// set env, get env, exec.c
+int set_env(int add, char* name, char** argv, unsigned int len);
+int get_env(int type, void* penv, char* name);
+
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);
