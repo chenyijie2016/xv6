@@ -106,6 +106,8 @@ extern int sys_uptime(void);
 extern int sys_date(void);
 extern int sys_cwrite(void);
 extern int sys_dir(void);
+// Add here
+extern int sys_set_env(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,6 +134,8 @@ static int (*syscalls[])(void) = {
 [SYS_date]    sys_date,
 [SYS_cwrite]  sys_cwrite,
 [SYS_dir]     sys_dir,
+// Add here
+[SYS_set_env] sys_set_env,
 };
 
 void

@@ -23,3 +23,5 @@
 #define SYS_date            22
 #define SYS_cwrite          23
 #define SYS_dir             24
+// Add here
+#define SYS_set_env         25 
