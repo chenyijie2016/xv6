@@ -4,6 +4,7 @@
 
 #define ROOTINO 1  // root i-number
 #define BSIZE 512  // block size
+#define PATHMAXSIZE 512 // PATH environment
 
 // Disk layout:
 // [ boot block | super block | log | inode blocks |
@@ -56,6 +57,22 @@ struct dirent {
   char name[DIRSIZ];
 };
 
+#define ENV_NAME_LEN 100
+#define ENV_CONTENT_LEN 512
+
+struct env {
+  char name[ENV_NAME_LEN];
+  char text[ENV_CONTENT_LEN];
+  struct env* next;
+};
+
+#define ENV_MAX_NUM 100
+
+struct envs {
+  struct env data[ENV_MAX_NUM];
+};
+
 static char curDir[FULLDIR] = "~";
 static int dirIndex = 1;
-
+extern struct envs sysEnv;
+extern uint envNum;
