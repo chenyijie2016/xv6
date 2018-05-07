@@ -402,23 +402,10 @@ sys_chdir(void)
   iunlock(ip);
   iput(curproc->cwd);
   end_op();
-  curproc->cwd = ip;
-  if((dirIndex == 1 && strncmp(path, "..", DIRSIZ) == 0) || strncmp(path, "." ,DIRSIZ) == 0)
+  if(curproc->cwd == ip)
     return 0;
-  if(strncmp(path, "..", DIRSIZ) == 0){
-    do{
-      curDir[dirIndex--] = '\0';
-    } while(curDir[dirIndex] != '/');
-    curDir[dirIndex] = '\0';
-  }
-  else{
-    if(dirIndex >= FULLDIR)
-      return 0;
-    curDir[dirIndex++] = '/';
-    int pos = 0;
-    while(path[pos] != '\0')
-      curDir[dirIndex++] = path[pos++]; 
-  }
+  curproc->cwd = ip;
+  
   return 0;
 }
 
