@@ -32,3 +32,6 @@ SYSCALL(uptime)
 SYSCALL(date)
 SYSCALL(cwrite)
 SYSCALL(dir)
+
+SYSCALL(set_env)
+SYSCALL(get_env)

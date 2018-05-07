@@ -57,23 +57,23 @@ struct dirent {
   char name[DIRSIZ];
 };
 
-#define ENV_NAME_LEN 100
-#define ENV_CONTENT_LEN 512
+#define ENV_CONTENT_LEN 64
+#define ENV_CONTENT_NUM 6
 
 struct env {
-  char name[ENV_NAME_LEN];
-  char text[ENV_CONTENT_LEN];
-  struct env* next;
+  uint len;
+  char name[ENV_CONTENT_LEN];
+  char text[ENV_CONTENT_NUM][ENV_CONTENT_LEN];
 };
 
 #define ENV_MAX_NUM 100
 
 struct envs {
   struct env data[ENV_MAX_NUM];
+  uint envNum;
 };
 
 char dirname[DIRFLR][DIRSIZ];
 static int dirflr = 0;
 
 extern struct envs sysEnv;
-extern uint envNum;
