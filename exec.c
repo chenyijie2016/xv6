@@ -183,7 +183,7 @@ mstrcmp(const char *p, const char *q)
   return (uchar)*p - (uchar)*q;
 }
 
-int sys_set_env(void) {
+int sys_setenv(void) {
   int add;
   argint(0, &add);
   char* name;
@@ -225,7 +225,7 @@ int sys_set_env(void) {
   return 0;
 }
 
-int sys_get_env(void) {
+int sys_getenv(void) {
   int type;
   void* penv;
   char* name;
