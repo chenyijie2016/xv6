@@ -24,5 +24,5 @@
 #define SYS_cwrite          23
 #define SYS_dir             24
 // Add here
-#define SYS_set_env         25 
-#define SYS_get_env         26
+#define SYS_setenv          25 
+#define SYS_getenv          26

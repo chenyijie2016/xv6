@@ -10,9 +10,9 @@ int main(int argc, char *argv[]) {
 
   if (argc != 2 || (argv[1][0] == '-' && argv[1][1] != 'a')) {
     printf(1, "Usage: showenv ENV_NAME\n       showenv -a\nENV_NAMEs: \n");
-    size = get_env(0, (void*)-1, (char*)0);
+    size = getenv(0, (void*)-1, (char*)0);
     for (int i = 0; i < size; i++) {
-      get_env(0, (void*)i, name);
+      getenv(0, (void*)i, name);
       printf(1, "   %s\n", name);
     }
     exit();
@@ -20,11 +20,11 @@ int main(int argc, char *argv[]) {
 
   if (argv[1][0] == '-') {
     printf(1, "ENV_NAMEs: \n");
-    size = get_env(0, (void*)-1, (char*)0);
+    size = getenv(0, (void*)-1, (char*)0);
     for (int i = 0; i < size; i++) {
-      get_env(0, (void*)i, name);
+      getenv(0, (void*)i, name);
       printf(1, " %s\n", name);
-      if (get_env(1, &m, name) == 0) {
+      if (getenv(1, &m, name) == 0) {
         for (uint i = 0; i < m.len; i++) {
           printf(1, "   %s\n", m.text[i]);
         }
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     }
     exit();
   }
-  if (get_env(1, &m, argv[1]) != 0) {
+  if (getenv(1, &m, argv[1]) != 0) {
     printf(1, "Error: Environment %s doesn't exist!\n", argv[1]);
     exit();
   }

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
   char* name = argv[firstIndex++];
 
-  if(set_env(add, name, (argv + firstIndex), argc - firstIndex) != 0) {
+  if(setenv(add, name, (argv + firstIndex), argc - firstIndex) != 0) {
     printf(1, "Error! Environment Variable: %s  Unset!\n", name);
   }
   else {

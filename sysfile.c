@@ -487,7 +487,7 @@ sys_dir(void)
 // Add here
 struct envs sysEnv;
 
-int sys_set_env(void) {
+int sys_setenv(void) {
   int add;
   argint(0, &add);
   char* name;
@@ -564,7 +564,7 @@ int sys_set_env(void) {
   return 0;
 }
 
-int sys_get_env(void) {
+int sys_getenv(void) {
   int type;
   char* penv;
   char* name;

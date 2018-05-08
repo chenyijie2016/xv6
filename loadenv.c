@@ -22,7 +22,7 @@ void set_new_env() {
     text[j] = 0;
     lenText = j;
     printf(1, "  loaded text %s\n", text);
-    set_env(2, name, (char**)(int)text, 1);
+    setenv(2, name, (char**)(int)text, 1);
   }
   j = 0;
 }
