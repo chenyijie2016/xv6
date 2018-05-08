@@ -52,35 +52,6 @@ fdalloc(struct file *f)
   return -1;
 }
 
-void
-parsepath(char *path)
-{
-  int len = strlen(path);
-  int i = 0, j;
-  while(1){
-    if(i >= len)
-      return;
-    while(path[i] == '/'){
-      i++;
-      if(i == len)
-        return;
-    }
-    j = i;
-    while(path[j] != '/' && j < len)
-      j++;
-    if(j == i+2 && path[i] == '.' && path[i+1] == '.')
-      dirflr = (dirflr-1) > 0 ? (dirflr-1) : 0;
-    else if(j == i+1 && path[i] == '.');
-    else{
-      int k;
-      for(k = 0; k < j-i; k++)
-        dirname[dirflr][k] = path[i+k];
-      dirflr++;
-    }
-    i = j + 1;
-  }
-}
-
 int
 sys_dup(void)
 {
@@ -416,18 +387,9 @@ sys_chdir(void)
   char *path;
   struct inode *ip;
   struct proc *curproc = myproc();
+  
   begin_op();
-  if(argstr(0, &path) < 0){
-    end_op();
-    return -1;
-  }
-  char buffer[128];
-  int len = strlen(path);
-  int i;
-  for(i = 0; i < len; i++)
-    buffer[i] = path[i];
-  buffer[len] = 0;
-  if((ip = namei(path)) == 0){
+  if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
     return -1;
   }
@@ -440,10 +402,23 @@ sys_chdir(void)
   iunlock(ip);
   iput(curproc->cwd);
   end_op();
-  if(curproc->cwd == ip)
-    return 0;
   curproc->cwd = ip;
-  parsepath(buffer);
+  if((dirIndex == 1 && strncmp(path, "..", DIRSIZ) == 0) || strncmp(path, "." ,DIRSIZ) == 0)
+    return 0;
+  if(strncmp(path, "..", DIRSIZ) == 0){
+    do{
+      curDir[dirIndex--] = '\0';
+    } while(curDir[dirIndex] != '/');
+    curDir[dirIndex] = '\0';
+  }
+  else{
+    if(dirIndex >= FULLDIR)
+      return 0;
+    curDir[dirIndex++] = '/';
+    int pos = 0;
+    while(path[pos] != '\0')
+      curDir[dirIndex++] = path[pos++]; 
+  }
   return 0;
 }
 
@@ -500,19 +475,12 @@ sys_pipe(void)
 int 
 sys_dir(void)
 {
-  char *d;
-  if(argstr(0, &d) < 0)
+  char* dir;
+  if(argstr(0, &dir) < 0)
     return -1;
-  int i = 0, j;
-  d[i++] = '~';
-  for(j = 0; j < dirflr; j++){
-    int len = strlen(dirname[j]);
-    d[i++] = '/';
-    int k;
-    for(k = 0; k < len; k++)
-      d[i++] =dirname[j][k];
-  }
-  d[i] = 0;
+  int i ;
+  for(i = 0; i < FULLDIR; i++)
+    dir[i] = curDir[i];
   return 0; 
 }
 
