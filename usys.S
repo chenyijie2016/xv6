@@ -32,6 +32,6 @@ SYSCALL(uptime)
 SYSCALL(date)
 SYSCALL(cwrite)
 SYSCALL(dir)
-
 SYSCALL(setenv)
 SYSCALL(getenv)
+SYSCALL(cmplt)

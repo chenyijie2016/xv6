@@ -22,18 +22,15 @@ exec(char *path, char **argv)
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
 
-  int length = strlen(path);
-  int found = 0;
-  int n;
+  int length = strlen(path), found = 0, n;
   char file_path[FILE_PATH_LEN];
   struct env* pathenv = 0;
 
   begin_op();
 
   if((ip = namei(path)) == 0){
-    if (sysEnv.envNum > 0) {
+    if (sysEnv.envNum > 0)
       pathenv = &(sysEnv.data[0]);
-    }
 
     uint pathIndex = 0;
     uint len = pathenv->len;

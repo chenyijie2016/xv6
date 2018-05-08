@@ -519,7 +519,9 @@ sys_dir(void)
 // Add here
 struct envs sysEnv;
 
-int sys_setenv(void) {
+int 
+sys_setenv(void) 
+{
   int add;
   argint(0, &add);
   char* name;
@@ -596,10 +598,11 @@ int sys_setenv(void) {
   return 0;
 }
 
-int sys_getenv(void) {
+int 
+sys_getenv(void) 
+{
   int type;
-  char* penv;
-  char* name;
+  char *penv, *name;
   argint(0, &type);
   argstr(1, &penv);
   argstr(2, &name);
@@ -618,5 +621,41 @@ int sys_getenv(void) {
     }
     return 1;
   }
+  return 0;
+}
+
+int 
+sys_cmplt(void)
+{
+  char *words;
+  if(argstr(0, &words) < 0)
+    return -1;
+  cprintf("POSSIBLE COMMANDS:\n");
+  struct env* pathenv = 0;
+  if (sysEnv.envNum > 0)
+    pathenv = &(sysEnv.data[0]);
+  begin_op();
+  int i;
+  for(i = 0; i < pathenv->len; i++){
+    char content[ENV_CONTENT_LEN * 2];
+    strncpy(content, pathenv->text[i], ENV_CONTENT_LEN);
+    int len = strlen(content);
+    struct inode *dp = namei(content);
+    if(!dp)
+      continue;
+    uint off, inum;
+    struct dirent de;
+    for(off = 0; off < dp->size; off += sizeof(de)){
+      if(readi(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+        panic("dirlookup read");
+      if(de.inum == 0)
+        continue;
+      strncpy(content + len, de.name, ENV_CONTENT_LEN);
+      struct inode* node = namei(content);
+      if(strprefix(words, de.name))
+        cprintf("%s\n", de.name);
+    }
+  }
+  end_op();
   return 0;
 }
