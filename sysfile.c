@@ -602,23 +602,28 @@ sys_cmplt(void)
   struct env* pathenv = 0;
   if (sysEnv.envNum > 0)
     pathenv = &(sysEnv.data[0]);
+  begin_op();
   int i;
   for(i = 0; i < pathenv->len; i++){
     char content[ENV_CONTENT_LEN * 2];
     strncpy(content, pathenv->text[i], ENV_CONTENT_LEN);
     int len = strlen(content);
     struct inode *dp = namei(content);
+    if(!dp)
+      continue;
     uint off, inum;
     struct dirent de;
-
     for(off = 0; off < dp->size; off += sizeof(de)){
       if(readi(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
         panic("dirlookup read");
+      if(de.inum == 0)
+        continue;
       strncpy(content + len, de.name, ENV_CONTENT_LEN);
       struct inode* node = namei(content);
       if(strprefix(words, de.name))
         cprintf("%s\n", de.name);
     }
   }
+  end_op();
   return 0;
 }
