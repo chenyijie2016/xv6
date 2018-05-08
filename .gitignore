@@ -5,6 +5,8 @@ _*
 *.asm
 *.sym
 *.img
+*.swp
+*.tmpl
 vectors.S
 bootblock
 entryother
@@ -17,3 +19,7 @@ mkfs
 /fmt/*
 /.idea/*
 /.vscode/*
+.bochsrc
+.cvsignore
+.dir-locals.el
+*.pdf

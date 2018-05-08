@@ -7,7 +7,6 @@ int main(int argc, char *argv[]) {
   struct env m;
   int size;
   char name[ENV_CONTENT_LEN];
-
   if (argc != 2 || (argv[1][0] == '-' && argv[1][1] != 'a')) {
     printf(1, "Usage: showenv ENV_NAME\n       showenv -a\nENV_NAMEs: \n");
     size = getenv(0, (void*)-1, (char*)0);
