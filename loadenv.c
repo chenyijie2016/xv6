@@ -11,7 +11,7 @@
 #define LOADING_TEXT 2
 
 char buf[512], name[ENV_CONTENT_LEN], text[ENV_CONTENT_LEN];
-int fd, n, i, j, state, lenName, lenText;
+int fd, n, i, j, state, lenName, lenText, silent;
 
 void set_new_env() {
   if (j > 0) {
@@ -21,7 +21,8 @@ void set_new_env() {
     }
     text[j] = 0;
     lenText = j;
-    printf(1, "  loaded text %s\n", text);
+    if (!silent)
+      printf(1, "  loaded text %s\n", text);
     setenv(2, name, (char**)(int)text, 1);
   }
   j = 0;
@@ -29,19 +30,27 @@ void set_new_env() {
 
 int main(int argc, char* argv[]) {
   fd = -1;
+  silent = 0;
+  if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 's') {
+    silent = 1;
+  }
   if (argc > 1) {
-    printf(1, "Loading file %s...\n", argv[1]);
+    if (!silent)
+      printf(1, "Loading file %s...\n", argv[1]);
     fd = open(argv[1], 0);
     if (fd < 0) {
-      printf(1, "Load Error!\n");
+      if (!silent)
+        printf(1, "Load Error!\n");
     }
   }
   if (fd < 0) {
-    printf(1, "Loading file %s...\n", defaultEnv);
+    if (!silent)
+      printf(1, "Loading file %s...\n", defaultEnv);
     fd = open(defaultEnv, 0);
   }
   if(fd < 0){
-    printf(1, "Load Error!\n");
+    if (!silent)
+      printf(1, "Load Error!\n");
   }
   else {
     j = 0, state = NOTHING;
@@ -64,7 +73,8 @@ int main(int argc, char* argv[]) {
             state = LOADING_TEXT;
             lenName = j;
             j = 0;
-            printf(1, "Found ENV_NAME:%s\n", name);
+            if (!silent)
+              printf(1, "Found ENV_NAME:%s\n", name);
           }
           // a new env
           else if(state == LOADING_TEXT) {

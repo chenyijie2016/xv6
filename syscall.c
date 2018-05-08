@@ -135,6 +135,7 @@ static int (*syscalls[])(void) = {
 [SYS_date]    sys_date,
 [SYS_cwrite]  sys_cwrite,
 [SYS_dir]     sys_dir,
+// Add here
 [SYS_setenv]  sys_setenv,
 [SYS_getenv]  sys_getenv,
 [SYS_cmplt]   sys_cmplt,
