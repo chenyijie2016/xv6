@@ -150,6 +150,7 @@ char*           safestrcpy(char*, const char*, int);
 int             strlen(const char*);
 int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
+int             strprefix(char*, const char*);
 
 // syscall.c
 int             argint(int, int*);

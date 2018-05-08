@@ -104,6 +104,18 @@ strlen(const char *s)
 }
 
 int
+strprefix(char *s ,char *t)
+{
+  while(*s && *t && *s == *t){
+    s++;
+    t++;
+  }
+  if(!*s)
+    return 1;
+  return 0;
+}
+
+int
 mstrcmp(const char *p, const char *q)
 {
   return strncmp(p, q, strlen(q));

@@ -25,3 +25,4 @@
 #define SYS_dir             24
 #define SYS_setenv          25 
 #define SYS_getenv          26
+#define SYS_cmplt           27

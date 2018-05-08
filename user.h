@@ -26,10 +26,9 @@ int uptime(void);
 int date(struct rtcdate *);
 int cwrite(int, void*, int, int, int);
 int dir(char*);
-
-// set env, get env, exec.c
-int setenv(int add, char* name, char** argv, unsigned int len);
-int getenv(int type, void* penv, char* name);
+int setenv(int, char*, char**, unsigned int);
+int getenv(int, void*, char*);
+int cmplt(char*);
 
 // ulib.c
 int stat(char*, struct stat*);
