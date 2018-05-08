@@ -179,9 +179,10 @@ UPROGS=\
 	_setenv\
 	_showenv\
 	_loadenv\
+	
 
-fs.img: mkfs README ENV $(UPROGS)
-	./mkfs fs.img README ENV $(UPROGS)
+fs.img: mkfs $(UPROGS)
+	./mkfs fs.img README ENV ENV_TEST $(UPROGS)
 
 -include *.d
 

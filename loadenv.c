@@ -3,21 +3,48 @@
 #include "user.h"
 #include "fs.h"
 
-static LOAD_ENV_USED = 0;
+#define defaultEnv "ENV"
 
 // NOTHING - READ$ - LOADING_NAME - READ CH TO NAME- READ$ - LOADED_NAME- 
 #define LOADING_NAME 0
 #define NOTHING      1
 #define LOADING_TEXT 2
-int main(int argc, char* argv[]) {
-  if (LOAD_ENV_USED++) {
-    printf(1, "Already run the function!\n");
+
+char buf[512], name[ENV_CONTENT_LEN], text[ENV_CONTENT_LEN];
+int fd, n, i, j, state, lenName, lenText;
+
+void set_new_env() {
+  if (j > 0) {
+    if (j >= ENV_CONTENT_LEN) {
+      close(fd);
+      exit();
+    }
+    text[j] = 0;
+    lenText = j;
+    printf(1, "  loaded text %s\n", text);
+    set_env(2, name, (char**)(int)text, 1);
   }
-  printf(1, "Loading file...\n");
-  char buf[512], name[ENV_CONTENT_LEN], text[ENV_CONTENT_LEN];
-  int fd;
-  if((fd = open("ENV", 0)) >= 0){
-    int n, i, j = 0, state = NOTHING, lenName, lenText;
+  j = 0;
+}
+
+int main(int argc, char* argv[]) {
+  fd = -1;
+  if (argc > 1) {
+    printf(1, "Loading file %s...\n", argv[1]);
+    fd = open(argv[1], 0);
+    if (fd < 0) {
+      printf(1, "Load Error!\n");
+    }
+  }
+  if (fd < 0) {
+    printf(1, "Loading file %s...\n", defaultEnv);
+    fd = open(defaultEnv, 0);
+  }
+  if(fd < 0){
+    printf(1, "Load Error!\n");
+  }
+  else {
+    j = 0, state = NOTHING;
     while(((i=0), n = read(fd, buf, sizeof(buf)))>0) {
       while (i < n) {
         char temp = buf[i++];
@@ -41,33 +68,13 @@ int main(int argc, char* argv[]) {
           }
           // a new env
           else if(state == LOADING_TEXT) {
-            if (j > 0) {
-              if (j >= ENV_CONTENT_LEN) {
-                close(fd);
-                exit();
-              }
-              text[j] = 0;
-              lenText = j;
-              printf(1, "loaded text %s\n", text);
-              set_env(2, name, text, 1);
-            }
+            set_new_env();
             state = LOADING_NAME;
-            j = 0;
           }
         }
         else if (temp == ' ' || temp == '\n' || temp == '\r' || temp == '\t') {
           if (state == LOADING_TEXT) {
-            if (j > 0) {
-              if (j >= ENV_CONTENT_LEN) {
-                close(fd);
-                exit();
-              }
-              text[j] = 0;
-              lenText = j;
-              printf(1, "loaded text %s\n", text);
-              set_env(2, name, text, 1);
-            }
-            j = 0;
+            set_new_env();
           }
         }
         else {
@@ -88,20 +95,7 @@ int main(int argc, char* argv[]) {
         }
       }
     }
-    if (j > 0) {
-      if (j >= ENV_CONTENT_LEN) {
-        close(fd);
-        exit();
-      }
-      text[j] = 0;
-      lenText = j;
-      printf(1, "Finally loaded text %s (len %d)\n", text, lenText);
-      set_env(2, (char*)name, text, (unsigned)1);
-    }
-    close(fd);
-  }
-  else {
-    printf(1, "Load File Error!\n");
+    set_new_env();    
   }
   exit();
 }
