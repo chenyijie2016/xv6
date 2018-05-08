@@ -103,3 +103,15 @@ strlen(const char *s)
   return n;
 }
 
+int
+mstrcmp(const char *p, const char *q)
+{
+  return strncmp(p, q, strlen(q));
+}
+
+char*
+mstrcpy(char *s, char *t)
+{
+  return strncpy(s, t, strlen(t));
+}
+

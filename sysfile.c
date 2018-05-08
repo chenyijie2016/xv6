@@ -515,3 +515,108 @@ sys_dir(void)
   d[i] = 0;
   return 0; 
 }
+
+// Add here
+struct envs sysEnv;
+
+int sys_setenv(void) {
+  int add;
+  argint(0, &add);
+  char* name;
+  argstr(1, &name);
+  char** argv;
+  char* temp;
+  argstr(2, &temp);
+  argv = (char**)(int)(temp);
+  int len;
+  argint(3, &len);
+
+  uint i = 0;
+
+  if (add == 2) {
+    for (; i < sysEnv.envNum; i++) {
+      if (strncmp(name, sysEnv.data[i].name, ENV_CONTENT_LEN) == 0) {
+        break;
+      }
+    }
+    if (i == sysEnv.envNum) {
+      if (sysEnv.envNum == ENV_MAX_NUM) {
+        return 2;
+      }
+      sysEnv.envNum++;
+      strncpy(sysEnv.data[i].name, name, strlen(name) + 1);
+      sysEnv.data[i].len = 0;
+    }
+
+    for (int k = 0; k < sysEnv.data[i].len; k++) {
+      if (strncmp(temp, sysEnv.data[i].text[k], ENV_CONTENT_LEN) == 0) {
+        return 1;
+      }
+    }
+    strncpy(sysEnv.data[i].text[sysEnv.data[i].len++], temp, strlen(temp) + 1);
+  }
+  else {
+    for (; i < sysEnv.envNum; i++) {
+      if (strncmp(name, sysEnv.data[i].name, ENV_CONTENT_LEN) == 0) {
+        if (!add) {
+          sysEnv.data[i].len = 0;
+        }
+        break;
+      }
+    }
+    if (i == sysEnv.envNum) {
+      if (sysEnv.envNum == ENV_MAX_NUM) {
+        return 2;
+      }
+      sysEnv.envNum++;
+      strncpy(sysEnv.data[i].name, name, strlen(name) + 1);
+      sysEnv.data[i].len = 0;
+    }
+
+    uint j = 0;
+    for (j = 0; j < len && (sysEnv.data[i].len) < ENV_CONTENT_NUM; j++, (sysEnv.data[i].len)++) {
+      int ok = 1;
+      for (int k = 0; k < sysEnv.data[i].len; k++) {
+        if (strncmp(argv[j], sysEnv.data[i].text[k], ENV_CONTENT_LEN) == 0) {
+          ok = 0;
+          (sysEnv.data[i].len)--;
+          break;
+        }
+      }
+      if (ok) {
+        strncpy(sysEnv.data[i].text[sysEnv.data[i].len], argv[j], strlen(argv[j]) + 1);
+      }
+    }
+    if (j < len && sysEnv.data[i].len == ENV_CONTENT_NUM) {
+      return 1;
+    }
+    // TODO:save!
+  }
+  
+  return 0;
+}
+
+int sys_getenv(void) {
+  int type;
+  char* penv;
+  char* name;
+  argint(0, &type);
+  argstr(1, &penv);
+  argstr(2, &name);
+  if (type == 0) {
+    if (0 <= (int)penv && (int)penv < (int)sysEnv.envNum) {
+      strncpy(name, sysEnv.data[(int)penv].name, ENV_CONTENT_LEN);
+    }
+    return sysEnv.envNum;
+  }
+  else {
+    for (uint i = 0; i < sysEnv.envNum; i++) {
+      if (strncmp(name, sysEnv.data[i].name, ENV_CONTENT_LEN) == 0) {
+        memmove((void*)penv, (void*)(&(sysEnv.data[i])), (sizeof(struct env) + sizeof(char) - 1)/sizeof(char));
+        return 0;
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
