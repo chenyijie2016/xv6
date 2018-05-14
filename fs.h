@@ -51,6 +51,7 @@ struct dinode {
 // Directory is a file containing a sequence of dirent structures.
 #define DIRSIZ 14
 #define DIRFLR 16
+#define FULLDIR 128
 
 struct dirent {
   ushort inum;
@@ -73,6 +74,8 @@ struct envs {
   uint envNum;
 };
 
+static char curDir[FULLDIR] = "~";
+static int dirIndex = 1;
 char dirname[DIRFLR][DIRSIZ];
 static int dirflr = 0;
 
