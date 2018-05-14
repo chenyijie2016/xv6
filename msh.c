@@ -74,7 +74,6 @@ STATE setVariables(char* name, char* value) {
   strcpy(vs[vlen].name, name);
   strcpy(vs[vlen].value, value);
   vlen++;
-  printf(1, "Set Var %s with %s!\n", name, value);
   return STATE_OK;
 }
 
@@ -204,7 +203,7 @@ int main(int argc, char*argv[])
     exit();
   }
 
-  printf(1, "Reading commands in file %s...\n", argv[1]);
+  // printf(1, "Reading commands in file %s...\n", argv[1]);
 
   if ((fd = open(argv[1], 0)) < 0) {
     printf(1, "Read file %s error!\n", argv[1]);
@@ -218,7 +217,7 @@ int main(int argc, char*argv[])
       printf(1, "Parse $ error!\n");
       continue;
     }
-    printf(1, "Run command %s!\n", mcmd);
+    // printf(1, "Run command %s!\n", mcmd);
     int run = mcmd[0];
     for (int j = 0; mcmd[j]; j++) {
       if (strchr(" \t\v\r\n", mcmd[j])) {
@@ -237,7 +236,7 @@ int main(int argc, char*argv[])
     }
   }
 
-  printf(1, "Already ran the commands in file %s!\n", argv[1]);
+  // printf(1, "Already ran the commands in file %s!\n", argv[1]);
 
   exit();
 }
