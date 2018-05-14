@@ -1,1 +1,3 @@
-loadenv -s
+loadenv
+k="$PATH
+test"
