@@ -4,20 +4,20 @@ echo "variable k has value: $k"
 m="$k m"
 
 # if statement, in this case, should choose elif and printf elif matches;
-if [$k=$m]
+if [$k = $m]
 echo "Error! if matches"
 elif [$k < $m]
-echo "elif matches"
+echo "1. elif matches"
 else
 echo "Error! Fail"
 fi
 
 # Another if statement choser, should match;
-if [$m==ttt m]
-echo "if matches"
-if [ttt=ttt]
+if [$m == ttt m]
+echo "2. if matches"
+if [ttt = ttt]
 then
-echo "Match"
+echo "3. double if match"
 else
 echo "Opps Double if"
 fi
@@ -26,6 +26,29 @@ echo "Error! elif matches"
 else
 echo "Error! Fail"
 fi
+
+while [$m != Seven]
+do
+echo "In while! now m is $m"
+if [$m == ttt m]
+then
+echo 4.
+m=One
+elif [$m <= OneTwo]
+then
+echo 5.
+m=Zero
+elif [$m -g Ze]
+then
+if [$m >= Zero]
+then
+echo 6.
+m=Seven
+fi
+else
+echo Error!
+fi
+done
 
 # End here
 echo END!

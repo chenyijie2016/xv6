@@ -40,13 +40,17 @@ int vlen = 0;
 int vsize = DEFALUT_VARIABLE_NUM;
 
 // 32 bit; last 4 bit for SIGN defines, last 5th bit for condition accepted or rejected;
-// (conditionlist[i] << 13) >> 6 for start index of conditionStatements
+// (conditionlist[i] << 13) >> 19 for start index of conditionStatements
 // conditionlist[i] >> 19 for end index of conditionStatements(not included)
 int conditionlist[128];
 int conditionlistindex = 0;
 
 // for for, while, until loop
 char conditionStatements[512][512];
+int conditionStatementsIndex = 0;
+
+int whilenextreadline[128];
+int whilenextreadlineindex = 0;
 
 int strprefix(char *str ,char *pre)
 {
@@ -157,7 +161,7 @@ char* strimAndTrip(char* a) {
   }
   int i;
   for (i = strlen(a) - 1; i >= 0; i--) {
-    if (a[i]) {
+    if (!strchr(" \t\v\r\n", a[i])) {
       break;
     }
   }
@@ -166,128 +170,128 @@ char* strimAndTrip(char* a) {
 }
 
 int strcmpParsingDollar(char* a, char* b) {
-	char aWithoutDollar[512], bWithoutDollar[512];
-	int index = 0, alen = strlen(a);
-	int blen = strlen(b);
-	for (int i = 0; i < alen; i++) {
-		if (a[i] == '$') {
-			// Get the word;
-			int nameindex = 0;
-			for (i++; ; i++) {
-				if (!a[i] || strchr(" \t\r\n\v\"$", a[i])) {
-					name[nameindex++] = 0;
-					i--;
-					break;
-				}
-				name[nameindex++] = a[i];
-				if (nameindex >= DEFALUT_VARIABLE_NAME) {
-					goto FINALCMP;
-				}
-			}
-			// Get var;
-			strGetvariable(aWithoutDollar, &index);
-		}
-		else {
-			aWithoutDollar[index++] = a[i];
-		}
-	}
-	aWithoutDollar[index] = 0;
+  char aWithoutDollar[512], bWithoutDollar[512];
+  int index = 0, alen = strlen(a);
+  int blen = strlen(b);
+  for (int i = 0; i < alen; i++) {
+    if (a[i] == '$') {
+      // Get the word;
+      int nameindex = 0;
+      for (i++; ; i++) {
+        if (!a[i] || strchr(" \t\r\n\v\"$", a[i])) {
+          name[nameindex++] = 0;
+          i--;
+          break;
+        }
+        name[nameindex++] = a[i];
+        if (nameindex >= DEFALUT_VARIABLE_NAME) {
+          goto FINALCMP;
+        }
+      }
+      // Get var;
+      strGetvariable(aWithoutDollar, &index);
+    }
+    else {
+      aWithoutDollar[index++] = a[i];
+    }
+  }
+  aWithoutDollar[index] = 0;
 
-	index = 0;
-	for (int i = 0; i < blen; i++) {
-		if (b[i] == '$') {
-			// Get the word;
-			int nameindex = 0;
-			for (i++; ; i++) {
-				if (!b[i] || strchr(" \t\r\n\v\"$", b[i])) {
-					name[nameindex++] = 0;
-					i--;
-					break;
-				}
-				name[nameindex++] = b[i];
-				if (nameindex >= DEFALUT_VARIABLE_NAME) {
-					goto FINALCMP;
-				}
-			}
-			// Get var;
-			strGetvariable(bWithoutDollar, &index);
-		}
-		else {
-			bWithoutDollar[index++] = b[i];
-		}
-	}
-	bWithoutDollar[index] = 0;
+  index = 0;
+  for (int i = 0; i < blen; i++) {
+    if (b[i] == '$') {
+      // Get the word;
+      int nameindex = 0;
+      for (i++; ; i++) {
+        if (!b[i] || strchr(" \t\r\n\v\"$", b[i])) {
+          name[nameindex++] = 0;
+          i--;
+          break;
+        }
+        name[nameindex++] = b[i];
+        if (nameindex >= DEFALUT_VARIABLE_NAME) {
+          goto FINALCMP;
+        }
+      }
+      // Get var;
+      strGetvariable(bWithoutDollar, &index);
+    }
+    else {
+      bWithoutDollar[index++] = b[i];
+    }
+  }
+  bWithoutDollar[index] = 0;
 FINALCMP:
-	return strcmp(aWithoutDollar, bWithoutDollar);
+  return strcmp(aWithoutDollar, bWithoutDollar);
 }
 
 // Only return 0 or 1;
 int parseCondition(char* condition) {
-	// [] or [[]]
-	if (condition[0] == '[' && condition[strlen(condition) - 1] == ']') {
-		condition[strlen(condition) - 1] = 0;
-		return parseCondition(condition + 1);
-	}
-	if (condition[0] == '!') {
-		return 1 - parseCondition(condition + 1);
-	}
-	int index;
-	index = subString(condition, "&&");
-	if (index < 0) {
-		index = subString(condition, "-a");
-	}
-	if (index >= 0) {
-		condition[index] = 0;
-		return parseCondition(condition) && parseCondition(condition + index + 2);
-	}
-	index = subString(condition, "||");
-	if (index < 0) {
-		index = subString(condition, "-o");
-	}
-	if (index >= 0) {
-		condition[index] = 0;
-		return parseCondition(condition) || parseCondition(condition + index + 2);
-	}
-	index = subString(condition, "=");
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + 1 + (condition[index + 1] == '='))) == 0;
-	}
-	int operationlen = 2;
-	index = subString(condition, "!=");
-	if (index < 0) {
-		index = subString(condition, "-ne");
-		operationlen = 3;
-	}
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen));
-	}
-	index = subString(condition, ">");
-	operationlen = 1;
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) > 0;
-	}
-	index = subString(condition, ">=");
-	operationlen = 2;
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) >= 0;
-	}
-	index = subString(condition, "<");
-	operationlen = 1;
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) < 0;
-	}
-	index = subString(condition, "<=");
-	operationlen = 2;
-	if (index >= 0) {
-		condition[index] = 0;
-		return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) <= 0;
-	}
-	return 0;
+  // [] or [[]]
+  if (condition[0] == '[' && condition[strlen(condition) - 1] == ']') {
+    condition[strlen(condition) - 1] = 0;
+    return parseCondition(condition + 1);
+  }
+  if (condition[0] == '!') {
+    return 1 - parseCondition(condition + 1);
+  }
+  int index;
+  index = subString(condition, "&&");
+  if (index < 0) {
+    index = subString(condition, "-a");
+  }
+  if (index >= 0) {
+    condition[index] = 0;
+    return parseCondition(condition) && parseCondition(condition + index + 2);
+  }
+  index = subString(condition, "||");
+  if (index < 0) {
+    index = subString(condition, "-o");
+  }
+  if (index >= 0) {
+    condition[index] = 0;
+    return parseCondition(condition) || parseCondition(condition + index + 2);
+  }
+  int operationlen = 2;
+  index = subString(condition, "!=");
+  if (index < 0) {
+    index = subString(condition, "-ne");
+    operationlen = 3;
+  }
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen));
+  }
+  index = subString(condition, ">=");
+  operationlen = 2;
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) >= 0;
+  }
+  index = subString(condition, "<=");
+  operationlen = 2;
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) <= 0;
+  }
+  index = subString(condition, "=");
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + 1 + (condition[index + 1] == '='))) == 0;
+  }
+  index = subString(condition, ">");
+  operationlen = 1;
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) > 0;
+  }
+  index = subString(condition, "<");
+  operationlen = 1;
+  if (index >= 0) {
+    condition[index] = 0;
+    return strcmpParsingDollar(strimAndTrip(condition), strimAndTrip(condition + index + operationlen)) < 0;
+  }
+  return 0;
 }
 
 STATE setVariables(char* name, char* value) {
@@ -310,6 +314,10 @@ STATE setVariables(char* name, char* value) {
 }
 
 int loadCommand() {
+  if (whilenextreadlineindex > 0) {
+    strcpy(ans, conditionStatements[whilenextreadline[whilenextreadlineindex - 1]++]);
+    return 1;
+  }
   while (1) {
     if (i == n){
       n = read(fd, buf, sizeof(buf));
@@ -344,7 +352,7 @@ int loadCommand() {
               j = 0;
               return 1;
             }
-						continue;
+            continue;
           }
         }
         ans[j++] = temp;
@@ -439,7 +447,7 @@ STATE mruncmd() {
       conditionlist[conditionlistindex++] = parseif ? (IF_SIGN | CONDITION_ACCEPTED) : (IF_SIGN | CONDITION_REJECTED);
       return STATE_OK;
     }
-    else if (strprefix(mcmd, "then")) {
+    else if (strcmp(mcmd, "then") == 0) {
       return STATE_OK;
     }
     else if (strprefix(mcmd, "elif ")) {
@@ -468,7 +476,7 @@ STATE mruncmd() {
       conditionlist[conditionlistindex++] = parseelif ? (ELIF_SIGN | CONDITION_ACCEPTED) : (ELIF_SIGN | CONDITION_REJECTED);
       return STATE_OK;
     }
-    else if (strprefix(mcmd, "else")) {
+    else if (strcmp(mcmd, "else") == 0) {
       if (conditionlistindex >= 128) {
         return STATE_OVERFLOW;
       }
@@ -488,7 +496,7 @@ STATE mruncmd() {
       conditionlist[conditionlistindex++] = parseelse ? (ELSE_SIGN | CONDITION_ACCEPTED) : (ELSE_SIGN | CONDITION_REJECTED);
       return STATE_OK;
     }
-    else if (strprefix(mcmd, "fi")) {
+    else if (strcmp(mcmd, "fi") == 0) {
       if (conditionlistindex < 1 || ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELSE_SIGN)) {
         return STATE_ERROR;
       }
@@ -497,6 +505,91 @@ STATE mruncmd() {
           break;
         }
       }
+      return STATE_OK;
+    }
+    else if (strprefix(mcmd, "while ")) {
+      if (conditionlistindex >= 128) {
+        return STATE_OVERFLOW;
+      }
+      char whilecondition[512];
+      strcpy(whilecondition, mcmd + 6);
+      char tempwhilecondition[512];
+      strcpy(tempwhilecondition, whilecondition);
+      int parsewhile = parseCondition(tempwhilecondition);
+      // load all the lines...
+      if (loadCommand() == 0 || parsedollar() != STATE_OK || strcmp(mcmd, "do")) {
+        return STATE_ERROR;
+      }
+      int whilecount = 1;
+      int startstatement = conditionStatementsIndex;
+      while (whilecount > 0 && loadCommand() && parsedollar() == STATE_OK) {
+        if (strprefix(mcmd, "while ")) {
+          whilecount++;
+        }
+        if (strcmp(mcmd, "done") == 0) {
+          whilecount--;
+          if (whilecount == 0) {
+            break;
+          }
+        }
+        if (conditionStatementsIndex >= 511) {
+          return STATE_OVERFLOW;
+        }
+        strcpy(conditionStatements[conditionStatementsIndex++], ans);
+      }
+      int stopstatement = conditionStatementsIndex;
+      conditionlist[conditionlistindex++] = parsewhile ? (WHILE_SIGN | CONDITION_ACCEPTED | (startstatement << 6) | (stopstatement << 19)) : (WHILE_SIGN | CONDITION_REJECTED | (startstatement << 6) | (stopstatement << 19));
+      // Run commands!
+      // Set a variable for function loadCommand() to tell it what to do!
+      // Use loadvar to get the next loadCommand statement index;
+      whilenextreadline[whilenextreadlineindex++] = startstatement;
+      while (1) {
+        whilenextreadline[whilenextreadlineindex - 1] = startstatement; 
+        strcpy(tempwhilecondition, whilecondition);
+        if (parseCondition(tempwhilecondition) == 0) {
+          break;
+        }
+        while (whilenextreadline[whilenextreadlineindex - 1] < stopstatement) {
+          if (!loadCommand()) {
+            break;
+          }
+          if (parsedollar() != STATE_OK) {
+            break;
+          }
+          // Check while
+          if (strprefix(mcmd, "while ")) {
+            // find where this while ends;
+            int innerwhilecount = 1;
+            int j;
+            for (j = whilenextreadline[whilenextreadlineindex - 1]; j < stopstatement; j++) {
+              if (strprefix(conditionStatements[j], "while ")) {
+                innerwhilecount++;
+              }
+              else if (strcmp(conditionStatements[j], "done") == 0) {
+                innerwhilecount--;
+                if (innerwhilecount == 0) {
+                  break;
+                }
+              }
+            }
+            if (j >= stopstatement) {
+              return STATE_ERROR;
+            }
+            whilenextreadline[whilenextreadlineindex - 1] = j + 1;
+          }
+          mruncmd();
+        }
+      }
+      // Already run all the commands!
+      conditionStatementsIndex = stopstatement;
+      conditionlistindex--;
+      whilenextreadlineindex--;
+      return STATE_OK;
+    }
+    else if (strcmp(mcmd, "do") == 0) {
+      return STATE_OK;
+    }
+    else if (strcmp(mcmd, "done") == 0) {
       return STATE_OK;
     }
     if (conditionlistindex > 0 && (conditionlist[conditionlistindex - 1] & ACCEPTED_CHOSER) == 0) {
