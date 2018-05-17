@@ -1,3 +1,25 @@
-loadenv
-k="$PATH
-test"
+loadenv -s
+k=ttt
+echo "variable k has value: $k"
+m="$k m"
+
+# if statement, in this case, should choose elif and printf elif matches;
+if [$k=$m]
+echo "(shouldn't)if matches"
+elif [$k < $m]
+echo "elif matches"
+else
+echo "(shouldn't)Fail"
+fi
+
+# Another if statement choser, should match;
+if [$m==ttt m]
+echo "if matches"
+elif [$k < $m]
+echo "(shouldn't)elif matches"
+else
+echo "(shouldn't)Fail"
+fi
+
+# End here
+echo END!
