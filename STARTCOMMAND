@@ -5,20 +5,26 @@ m="$k m"
 
 # if statement, in this case, should choose elif and printf elif matches;
 if [$k=$m]
-echo "(shouldn't)if matches"
+echo "Error! if matches"
 elif [$k < $m]
 echo "elif matches"
 else
-echo "(shouldn't)Fail"
+echo "Error! Fail"
 fi
 
 # Another if statement choser, should match;
 if [$m==ttt m]
 echo "if matches"
-elif [$k < $m]
-echo "(shouldn't)elif matches"
+if [ttt=ttt]
+then
+echo "Match"
 else
-echo "(shouldn't)Fail"
+echo "Opps Double if"
+fi
+elif [$k < $m]
+echo "Error! elif matches"
+else
+echo "Error! Fail"
 fi
 
 # End here
