@@ -59,3 +59,7 @@ struct cmd *parsecmd(char*);
 void runcmd(struct cmd *cmd);
 
 int getcmd(char *buf, int nbuf);
+
+int strprefix(char *str ,char *pre);
+
+char* strimAndTrip(char* a);

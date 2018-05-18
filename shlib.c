@@ -415,3 +415,31 @@ nulterminate(struct cmd *cmd)
   }
   return cmd;
 }
+
+int strprefix(char *str ,char *pre)
+{
+  if (strlen(str) < strlen(pre)) {
+    return 0;
+  }
+  while(*str && *pre && *str == *pre){
+    str++;
+    pre++;
+  }
+  if(!*pre)
+    return 1;
+  return 0;
+}
+
+char* strimAndTrip(char* a) {
+  while (*a && strchr(" \t\v\r\n", *a)) {
+    a++;
+  }
+  int i;
+  for (i = strlen(a) - 1; i >= 0; i--) {
+    if (!strchr(" \t\v\r\n", a[i])) {
+      break;
+    }
+  }
+  a[i + 1] = 0;
+  return a;
+}
