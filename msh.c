@@ -54,20 +54,6 @@ char mshErrorInfo[512];
 int whilenextreadline[128];
 int whilenextreadlineindex = 0;
 
-int strprefix(char *str ,char *pre)
-{
-  if (strlen(str) < strlen(pre)) {
-    return 0;
-  }
-  while(*str && *pre && *str == *pre){
-    str++;
-    pre++;
-  }
-  if(!*pre)
-    return 1;
-  return 0;
-}
-
 void strGetvariable(char* temp, int* index) {
   int tempIndex;
   for (tempIndex = 0; tempIndex < vlen; tempIndex++) {
@@ -157,20 +143,6 @@ int subString(char* ori, char* substring) {
     }
   }
   return -1;
-}
-
-char* strimAndTrip(char* a) {
-  while (*a && strchr(" \t\v\r\n", *a)) {
-    a++;
-  }
-  int i;
-  for (i = strlen(a) - 1; i >= 0; i--) {
-    if (!strchr(" \t\v\r\n", a[i])) {
-      break;
-    }
-  }
-  a[i + 1] = 0;
-  return a;
 }
 
 int strcmpParsingDollar(char* a, char* b) {
@@ -391,6 +363,10 @@ int loadCommand() {
 STATE parsedollar() {
   int quote = ' ', anslen = strlen(ans);
   parsedollarindex = strimAndTrip(ans) - ans;
+  if (strprefix(ans + parsedollarindex, "if ") || strprefix(ans + parsedollarindex, "while ") || strprefix(ans + parsedollarindex, "elif ")) {
+    strcpy(mcmd, ans + parsedollarindex);
+    return STATE_OK;
+  }
   mcmdindex = 0;
   for (; parsedollarindex < anslen; parsedollarindex++) {
     switch (ans[parsedollarindex]) {
@@ -413,7 +389,7 @@ STATE parsedollar() {
           break;
         }
       case '$':
-      if (quote == '\"') {
+      if (quote == '\"' || quote == ' ') {
         // Get the word;
         int nameindex = 0;
         for (parsedollarindex++; ; parsedollarindex++) {
