@@ -49,6 +49,8 @@ int conditionlistindex = 0;
 char conditionStatements[512][512];
 int conditionStatementsIndex = 0;
 
+char mshErrorInfo[512];
+
 int whilenextreadline[128];
 int whilenextreadlineindex = 0;
 
@@ -109,6 +111,7 @@ STATE getvariable() {
   for (tempIndex = 0; tempIndex < vlen; tempIndex++) {
     if (strcmp(name, vs[tempIndex].name) == 0) {
       if (mcmdindex + strlen(vs[tempIndex].value) >= 2048 - 1) {
+        strcpy(mshErrorInfo, "Can't replace $ variables since that command is too long after replacing $!");
         return STATE_ERROR;
       }
       strcpy(mcmd + mcmdindex, vs[tempIndex].value);
@@ -127,6 +130,7 @@ STATE getvariable() {
         variablesTotalLen += (1 + strlen(m.text[i]));
       }
       if (mcmdindex + variablesTotalLen >= 2048 - 1) {
+        strcpy(mshErrorInfo, "Can't replace $ variables since that command is too long after replacing $!");
         return STATE_ERROR;
       }
       strcpy(mcmd + mcmdindex, m.text[0]);
@@ -298,13 +302,19 @@ STATE setVariables(char* name, char* value) {
   for (int i = 0; i < vlen; i++) {
     if (strcmp(name, vs[i].name) == 0) {
       if (strlen(value) >= DEFALUT_VARIABLE_CONTENT) {
+        strcpy(mshErrorInfo, "Can't set variable since that the value is too long!");
         return STATE_OVERFLOW;
       }
       strcpy(vs[i].value, value);
       return STATE_OK;
     }
   }
-  if (vlen == vsize || strlen(name) >= DEFALUT_VARIABLE_NAME) {
+  if (vlen == vsize) {
+    strcpy(mshErrorInfo, "No space left for variables!");
+    return STATE_OVERFLOW;
+  }
+  if (strlen(name) >= DEFALUT_VARIABLE_NAME) {
+    strcpy(mshErrorInfo, "Can't set variable since that the name is too long!");
     return STATE_OVERFLOW;
   }
   strcpy(vs[vlen].name, name);
@@ -414,10 +424,12 @@ STATE parsedollar() {
           }
           name[nameindex++] = ans[parsedollarindex];
           if (nameindex >= DEFALUT_VARIABLE_NAME) {
+            strcpy(mshErrorInfo, "Can't replace $ variables since that variable name is too long!");
             return STATE_ERROR;
           }
         }
         if (getvariable() == STATE_ERROR) {
+          strcpy(mshErrorInfo, "Can't replace $ variables since that error occured when try to get variable content!");
           return STATE_ERROR;
         }
         break;
@@ -425,6 +437,7 @@ STATE parsedollar() {
       default:
         mcmd[mcmdindex++] = ans[parsedollarindex];
         if (mcmdindex >= 2048) {
+          strcpy(mshErrorInfo, "Can't replace $ variables since that command is too long after replacing $!");
           return STATE_ERROR;
         }
     }
@@ -455,6 +468,7 @@ STATE mruncmd() {
             }
           }
         }
+        strcpy(mshErrorInfo, "Parsing error! Didn't find corresponding fi!");
         return STATE_ERROR;
       }
       if (strprefix(mcmd, "while ")) {
@@ -475,6 +489,7 @@ STATE mruncmd() {
     }
     if (strprefix(mcmd, "if ")) {
       if (conditionlistindex >= 128) {
+        strcpy(mshErrorInfo, "Too many if conditions, while loops!");
         return STATE_OVERFLOW;
       }
       int parseif = parseCondition(mcmd + 3);
@@ -486,9 +501,11 @@ STATE mruncmd() {
     }
     else if (strprefix(mcmd, "elif ")) {
       if (conditionlistindex >= 128) {
+        strcpy(mshErrorInfo, "Too many if conditions, while loops!");
         return STATE_OVERFLOW;
       }
       if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN))) {
+        strcpy(mshErrorInfo, "Parsing error! Can't accept elif!");
         return STATE_ERROR;
       }
       int parseelif = 1;
@@ -512,9 +529,11 @@ STATE mruncmd() {
     }
     else if (strcmp(mcmd, "else") == 0) {
       if (conditionlistindex >= 128) {
+        strcpy(mshErrorInfo, "Too many if conditions, while loops!");
         return STATE_OVERFLOW;
       }
       if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN))) {
+        strcpy(mshErrorInfo, "Parsing error! Can't accept else!");
         return STATE_ERROR;
       }
       int parseelse = 1;
@@ -532,6 +551,7 @@ STATE mruncmd() {
     }
     else if (strcmp(mcmd, "fi") == 0) {
       if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELSE_SIGN))) {
+        strcpy(mshErrorInfo, "Parsing error! Can't accept fi!");
         return STATE_ERROR;
       }
       while (conditionlistindex > 0) {
@@ -543,6 +563,7 @@ STATE mruncmd() {
     }
     else if (strprefix(mcmd, "while ")) {
       if (conditionlistindex >= 128) {
+        strcpy(mshErrorInfo, "Too many if conditions, while loops!");
         return STATE_OVERFLOW;
       }
       char whilecondition[512];
@@ -552,6 +573,7 @@ STATE mruncmd() {
       int parsewhile = parseCondition(tempwhilecondition);
       // load all the lines...
       if (loadCommand() == 0 || parsedollar() != STATE_OK || strcmp(mcmd, "do")) {
+        strcpy(mshErrorInfo, "Parsing error! Can't accept while!");
         return STATE_ERROR;
       }
       int whilecount = 1;
@@ -567,6 +589,7 @@ STATE mruncmd() {
           }
         }
         if (conditionStatementsIndex >= 511) {
+          strcpy(mshErrorInfo, "Too many statemnts saved for while loop!");
           return STATE_OVERFLOW;
         }
         strcpy(conditionStatements[conditionStatementsIndex++], ans);
@@ -607,6 +630,7 @@ STATE mruncmd() {
               }
             }
             if (j >= stopstatement) {
+              strcpy(mshErrorInfo, "Parsing error! Can't find corresponding done!");
               return STATE_ERROR;
             }
             whilenextreadline[whilenextreadlineindex - 1] = j + 1;
@@ -662,6 +686,8 @@ int main(int argc, char*argv[])
     exit();
   }
   
+  strcpy(mshErrorInfo, "Sorry, no known ERROR info detected!");
+
   j = i = n = 0;
   while (loadCommand())
   {
@@ -670,7 +696,7 @@ int main(int argc, char*argv[])
       continue;
     }
     if (mruncmd() != STATE_OK) {
-      printf(1, "Error in msh running!\n");
+      printf(1, "Error in msh running! Detailed info:\n  %s\n", mshErrorInfo);
       exit();
     }
   }
