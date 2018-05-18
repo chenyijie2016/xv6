@@ -153,15 +153,24 @@ int strcmpParsingDollar(char* a, char* b) {
     if (a[i] == '$') {
       // Get the word;
       int nameindex = 0;
-      for (i++; ; i++) {
-        if (!a[i] || strchr(" \t\r\n\v\"$", a[i])) {
-          name[nameindex++] = 0;
-          i--;
-          break;
-        }
-        name[nameindex++] = a[i];
-        if (nameindex >= DEFALUT_VARIABLE_NAME) {
-          goto FINALCMP;
+      if (a[i + 1] == '{') {
+        // find '}'
+        int namefrom = i + 2;
+        for (i++; a[i] && a[i] != '}'; i++);
+        a[i] = 0;
+        strcpy(name, a + namefrom);
+      }
+      else {
+        for (i++; ; i++) {
+          if (!a[i] || strchr(" \t\r\n\v\"$", a[i])) {
+            name[nameindex++] = 0;
+            i--;
+            break;
+          }
+          name[nameindex++] = a[i];
+          if (nameindex >= DEFALUT_VARIABLE_NAME) {
+            goto FINALCMP;
+          }
         }
       }
       // Get var;
@@ -178,15 +187,24 @@ int strcmpParsingDollar(char* a, char* b) {
     if (b[i] == '$') {
       // Get the word;
       int nameindex = 0;
-      for (i++; ; i++) {
-        if (!b[i] || strchr(" \t\r\n\v\"$", b[i])) {
-          name[nameindex++] = 0;
-          i--;
-          break;
-        }
-        name[nameindex++] = b[i];
-        if (nameindex >= DEFALUT_VARIABLE_NAME) {
-          goto FINALCMP;
+      if (b[i + 1] == '{') {
+        // find '}'
+        int namefrom = i + 2;
+        for (i++; b[i] && b[i] != '}'; i++);
+        b[i] = 0;
+        strcpy(name, b + namefrom);
+      }
+      else {
+        for (i++; ; i++) {
+          if (!b[i] || strchr(" \t\r\n\v\"$", b[i])) {
+            name[nameindex++] = 0;
+            i--;
+            break;
+          }
+          name[nameindex++] = b[i];
+          if (nameindex >= DEFALUT_VARIABLE_NAME) {
+            goto FINALCMP;
+          }
         }
       }
       // Get var;
@@ -392,16 +410,25 @@ STATE parsedollar() {
       if (quote == '\"' || quote == ' ') {
         // Get the word;
         int nameindex = 0;
-        for (parsedollarindex++; ; parsedollarindex++) {
-          if (!ans[parsedollarindex] || strchr(" \t\r\n\v\"$", ans[parsedollarindex])) {
-            name[nameindex++] = 0;
-            parsedollarindex --;
-            break;
-          }
-          name[nameindex++] = ans[parsedollarindex];
-          if (nameindex >= DEFALUT_VARIABLE_NAME) {
-            strcpy(mshErrorInfo, "Can't replace $ variables since that variable name is too long!");
-            return STATE_ERROR;
+        if (ans[parsedollarindex + 1] == '{') {
+          // find '}'
+          int namefrom = parsedollarindex + 2;
+          for (parsedollarindex++; ans[parsedollarindex] && ans[parsedollarindex] != '}'; parsedollarindex++);
+          ans[parsedollarindex] = 0;
+          strcpy(name, ans + namefrom);
+        }
+        else {
+          for (parsedollarindex++; ; parsedollarindex++) {
+            if (!ans[parsedollarindex] || strchr(" \t\r\n\v\"$", ans[parsedollarindex])) {
+              name[nameindex++] = 0;
+              parsedollarindex --;
+              break;
+            }
+            name[nameindex++] = ans[parsedollarindex];
+            if (nameindex >= DEFALUT_VARIABLE_NAME) {
+              strcpy(mshErrorInfo, "Can't replace $ variables since that variable name is too long!");
+              return STATE_ERROR;
+            }
           }
         }
         if (getvariable() == STATE_ERROR) {
@@ -439,7 +466,6 @@ STATE mruncmd() {
           if (strcmp(mcmd, "fi") == 0) {
             ifcount--;
             if (ifcount == 0) {
-              break;
               return STATE_OK;
             }
           }
@@ -456,7 +482,6 @@ STATE mruncmd() {
           if (strcmp(mcmd, "done") == 0) {
             whilecount--;
             if (whilecount == 0) {
-              break;
               return STATE_OK;
             }
           }

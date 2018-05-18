@@ -473,13 +473,22 @@ void shparsedollar(char* nbuf, char* buf) {
       if (quote == '\"' || quote == ' ') {
         // Get the word;
         int nameindex = 0;
-        for (parsebufindex++; ; parsebufindex++) {
-          if (!buf[parsebufindex] || strchr(" \t\r\n\v\"$", buf[parsebufindex])) {
-            name[nameindex++] = 0;
-            parsebufindex --;
-            break;
+        if (buf[parsebufindex + 1] == '{') {
+          // find '}'
+          int namefrom = parsebufindex + 2;
+          for (parsebufindex++; buf[parsebufindex] && buf[parsebufindex] != '}'; parsebufindex++);
+          buf[parsebufindex] = 0;
+          strcpy(name, buf + namefrom);
+        }
+        else {
+          for (parsebufindex++; ; parsebufindex++) {
+            if (!buf[parsebufindex] || strchr(" \t\r\n\v\"$", buf[parsebufindex])) {
+              name[nameindex++] = 0;
+              parsebufindex --;
+              break;
+            }
+            name[nameindex++] = buf[parsebufindex];
           }
-          name[nameindex++] = buf[parsebufindex];
         }
         // Find in sysenv;
         struct env m;
