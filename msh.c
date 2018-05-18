@@ -1,5 +1,5 @@
 #include "shlib.h"
-#include "stack.h"
+#include "operationstate.h"
 
 #define DEFALUT_LINE_SIZE         512
 
