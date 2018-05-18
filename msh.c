@@ -380,7 +380,7 @@ int loadCommand() {
 
 STATE parsedollar() {
   int quote = ' ', anslen = strlen(ans);
-  parsedollarindex = 0;
+  parsedollarindex = strimAndTrip(ans) - ans;
   mcmdindex = 0;
   for (; parsedollarindex < anslen; parsedollarindex++) {
     switch (ans[parsedollarindex]) {
@@ -439,6 +439,40 @@ STATE mruncmd() {
     run = 0;
   }
   else {
+    if (conditionlistindex > 0 && (conditionlist[conditionlistindex - 1] & ACCEPTED_CHOSER) == 0) {
+      if (strprefix(mcmd, "if ")) {
+        // Find corresponding fi
+        int ifcount = 1;
+        while (ifcount > 0 && loadCommand() && parsedollar() == STATE_OK) {
+          if (strprefix(mcmd, "if ")) {
+            ifcount++;
+          }
+          if (strcmp(mcmd, "fi") == 0) {
+            ifcount--;
+            if (ifcount == 0) {
+              break;
+              return STATE_OK;
+            }
+          }
+        }
+        return STATE_ERROR;
+      }
+      if (strprefix(mcmd, "while ")) {
+        int whilecount = 1;
+        while (whilecount > 0 && loadCommand() && parsedollar() == STATE_OK) {
+          if (strprefix(mcmd, "while ")) {
+            whilecount++;
+          }
+          if (strcmp(mcmd, "done") == 0) {
+            whilecount--;
+            if (whilecount == 0) {
+              break;
+              return STATE_OK;
+            }
+          }
+        }
+      }
+    }
     if (strprefix(mcmd, "if ")) {
       if (conditionlistindex >= 128) {
         return STATE_OVERFLOW;
