@@ -488,7 +488,7 @@ STATE mruncmd() {
       if (conditionlistindex >= 128) {
         return STATE_OVERFLOW;
       }
-      if (conditionlistindex < 1 || ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN)) {
+      if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN))) {
         return STATE_ERROR;
       }
       int parseelif = 1;
@@ -514,7 +514,7 @@ STATE mruncmd() {
       if (conditionlistindex >= 128) {
         return STATE_OVERFLOW;
       }
-      if (conditionlistindex < 1 || ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN)) {
+      if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN))) {
         return STATE_ERROR;
       }
       int parseelse = 1;
@@ -531,7 +531,7 @@ STATE mruncmd() {
       return STATE_OK;
     }
     else if (strcmp(mcmd, "fi") == 0) {
-      if (conditionlistindex < 1 || ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELSE_SIGN)) {
+      if (conditionlistindex < 1 || (((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != IF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELIF_SIGN) && ((conditionlist[conditionlistindex - 1] & CONDITION_CHOSER) != ELSE_SIGN))) {
         return STATE_ERROR;
       }
       while (conditionlistindex > 0) {
