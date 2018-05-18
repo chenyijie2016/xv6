@@ -443,3 +443,72 @@ char* strimAndTrip(char* a) {
   a[i + 1] = 0;
   return a;
 }
+
+void shparsedollar(char* nbuf, char* buf) {
+  char name[100];
+  int quote = ' ', buflen = strlen(buf);
+  int parsebufindex = strimAndTrip(buf) - buf;
+  int nbufindex = 0;
+  for (; parsebufindex < buflen; parsebufindex++) {
+    switch (buf[parsebufindex]) {
+      case '\'':
+        if (quote == ' ') {
+          quote = '\'';
+          break;
+        }
+        else if (quote == '\'') {
+          quote = ' ';
+          break;
+        }
+      case '\"':
+        if (quote == ' ') {
+          quote = '\"';
+          break;
+        }
+        else if (quote == '\"') {
+          quote = ' ';
+          break;
+        }
+      case '$':
+      if (quote == '\"' || quote == ' ') {
+        // Get the word;
+        int nameindex = 0;
+        for (parsebufindex++; ; parsebufindex++) {
+          if (!buf[parsebufindex] || strchr(" \t\r\n\v\"$", buf[parsebufindex])) {
+            name[nameindex++] = 0;
+            parsebufindex --;
+            break;
+          }
+          name[nameindex++] = buf[parsebufindex];
+        }
+        // Find in sysenv;
+        struct env m;
+        int sysenvnum = getenv(1, &m, name);
+        if (sysenvnum == 0 && m.len > 0) {
+          // Found!
+          int variablesTotalLen = -1;
+          for (uint i = 0; i < m.len; i++) {
+            variablesTotalLen += (1 + strlen(m.text[i]));
+          }
+          if (nbufindex + variablesTotalLen < 256 - 2) {
+            strcpy(nbuf + nbufindex, m.text[0]);
+            nbufindex += strlen(m.text[0]);
+            for (int j = 0; j < m.len; j++) {
+              strcpy(nbuf + nbufindex, ":");
+              nbufindex += 1;
+              strcpy(nbuf + nbufindex, m.text[j]);
+              nbufindex += strlen(m.text[j]);
+            }
+          }
+        }
+        break;
+      }
+      default:
+        nbuf[nbufindex++] = buf[parsebufindex];
+        if (nbufindex >= 256 - 2) {
+          break;
+        }
+    }
+  }
+  nbuf[nbufindex] = 0;
+}

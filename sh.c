@@ -1,75 +1,5 @@
 #include "shlib.h"
 
-void parsedollar(char* nbuf, char* buf) {
-  char name[100];
-  int quote = ' ', buflen = strlen(buf);
-  int parsebufindex = strimAndTrip(buf) - buf;
-  int nbufindex = 0;
-  for (; parsebufindex < buflen; parsebufindex++) {
-    switch (buf[parsebufindex]) {
-      case '\'':
-        if (quote == ' ') {
-          quote = '\'';
-          break;
-        }
-        else if (quote == '\'') {
-          quote = ' ';
-          break;
-        }
-      case '\"':
-        if (quote == ' ') {
-          quote = '\"';
-          break;
-        }
-        else if (quote == '\"') {
-          quote = ' ';
-          break;
-        }
-      case '$':
-      if (quote == '\"' || quote == ' ') {
-        // Get the word;
-        int nameindex = 0;
-        for (parsebufindex++; ; parsebufindex++) {
-          if (!buf[parsebufindex] || strchr(" \t\r\n\v\"$", buf[parsebufindex])) {
-            name[nameindex++] = 0;
-            parsebufindex --;
-            break;
-          }
-          name[nameindex++] = buf[parsebufindex];
-        }
-        // Find in sysenv;
-        struct env m;
-        int sysenvnum = getenv(1, &m, name);
-        if (sysenvnum == 0 && m.len > 0) {
-          // Found!
-          int variablesTotalLen = -1;
-          for (uint i = 0; i < m.len; i++) {
-            variablesTotalLen += (1 + strlen(m.text[i]));
-          }
-          if (nbufindex + variablesTotalLen < 256 - 2) {
-            strcpy(nbuf + nbufindex, m.text[0]);
-            nbufindex += strlen(m.text[0]);
-            for (int j = 0; j < m.len; j++) {
-              strcpy(nbuf + nbufindex, ":");
-              nbufindex += 1;
-              strcpy(nbuf + nbufindex, m.text[j]);
-              nbufindex += strlen(m.text[j]);
-            }
-          }
-        }
-        break;
-      }
-      default:
-        nbuf[nbufindex++] = buf[parsebufindex];
-        if (nbufindex >= 256 - 2) {
-          break;
-        }
-    }
-  }
-  nbuf[nbufindex++] = '\n';
-  nbuf[nbufindex] = 0;
-}
-
 int
 main(void)
 {
@@ -92,7 +22,7 @@ main(void)
   // Read and run input commands.
   while(getcmd(buf, sizeof(buf)) >= 0){
     // clear space chars in the beginning of buf
-    parsedollar(nbuf, buf);
+    shparsedollar(nbuf, buf);
     int len =strlen(nbuf);
     nbuf[len++] = '\n';
     if(strprefix(nbuf, "cd ")){
@@ -112,9 +42,26 @@ main(void)
         printf(2, "auto complete %s failed\n", nbuf);
       continue;
     }
-    if(fork1() == 0)
-      runcmd(parsecmd(nbuf));
-    wait();
+    int run = 1;
+    // check equal
+    for (int j = 0; nbuf[j]; j++) {
+      if (strchr(" \t\v\r\n", nbuf[j])) {
+        break;
+      }
+      if (nbuf[j] == '=') {
+        run = 0;
+        nbuf[len - 1] = 0;
+        nbuf[j] = 0;
+        if (setenv(-1, nbuf, (char**)(int)(nbuf + j + 1), 1) > 0) {
+          printf(2, "Set variable fail! Too many variables now!\n");
+        }
+      }
+    }
+    if (run) {
+      if(fork1() == 0)
+        runcmd(parsecmd(nbuf));
+      wait();
+    }
   }
   exit();
 }

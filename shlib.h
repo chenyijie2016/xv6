@@ -63,3 +63,5 @@ int getcmd(char *buf, int nbuf);
 int strprefix(char *str ,char *pre);
 
 char* strimAndTrip(char* a);
+
+void shparsedollar(char* nbuf, char* buf);

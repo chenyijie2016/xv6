@@ -34,13 +34,14 @@ int main(int argc, char* argv[]) {
   if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 's') {
     silent = 1;
   }
-  if (argc > 1) {
+  if (argc > 1 + silent) {
     if (!silent)
-      printf(1, "Loading file %s...\n", argv[1]);
-    fd = open(argv[1], 0);
+      printf(1, "Loading file %s...\n", argv[1 + silent]);
+    fd = open(argv[1 + silent], 0);
     if (fd < 0) {
       if (!silent)
         printf(1, "Load Error!\n");
+      exit();
     }
   }
   if (fd < 0) {

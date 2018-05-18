@@ -503,9 +503,14 @@ sys_setenv(void)
 
   uint i = 0;
 
-  if (add == 2) {
+  // 2 used in loadenv, means add;
+  // -1 used in sh, means replace;
+  if (add == 2 || add == -1) {
     for (; i < sysEnv.envNum; i++) {
       if (strncmp(name, sysEnv.data[i].name, ENV_CONTENT_LEN) == 0) {
+        if (add < 0) {
+          sysEnv.data[i].len = 0;
+        }
         break;
       }
     }
