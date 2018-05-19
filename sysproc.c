@@ -99,3 +99,10 @@ sys_date(void)
   cmostime(r);
   return 0;
 }
+
+int
+sys_tasklist(void)
+{
+  procdump();
+  return 0;
+}

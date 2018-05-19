@@ -181,7 +181,7 @@ UPROGS=\
 	_showenv\
 	_loadenv\
 	_calculator\
-	
+	_tasklist\
 
 fs.img: mkfs $(UPROGS)
 	./mkfs fs.img README ENV ENV_TEST STARTCOMMAND $(UPROGS)
