@@ -1,0 +1,1 @@
+double calculate(char*, int*);

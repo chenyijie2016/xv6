@@ -1,6 +1,5 @@
 loadenv -s
 k=ttt
-echo "variable k has value: $k"
 m="$k m"
 
 # if statement, in this case, should choose elif and printf elif matches;
@@ -55,6 +54,25 @@ do
     echo Error! 
   fi
 done
+
+# test ${}
+m=kkk
+t=mmm
+p=${t}C
+if [$p== mmmC]
+then
+  echo 9. OK!
+  if [$p = ${t}C]
+  then
+    echo 10. OK
+    if [${t}C = $p]
+    then
+      echo 11. ok
+    fi
+  fi
+else
+  echo ERR!
+fi
 
 # End here
 echo END!

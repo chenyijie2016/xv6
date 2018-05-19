@@ -35,6 +35,44 @@ cprintint(int fd, int xx, int base, int sgn, int bgcolor, int wdcolor)
     cputc(fd, buf[i], bgcolor, wdcolor);
 }
 
+static void
+cprintfloat(int fd, double t, int bgcolor, int wdcolor)
+{
+  static char digits[] = "0123456789";
+  char buf[16];
+  int i;
+  uint x;
+
+  if (t < 0) {
+    cputc(fd, '-', bgcolor, wdcolor);
+    t = -t;
+  }
+  t += 0.00005;
+  
+  x = (uint)(int)t;
+  t -= (int)t;
+  
+  i = 0;
+  do{
+    buf[i++] = digits[x % 10];
+  }while((x /= 10) != 0);
+
+  while(--i >= 0)
+    cputc(fd, buf[i], bgcolor, wdcolor);
+
+  cputc(fd, '.', bgcolor, wdcolor);
+
+  for (i = 0; i < 4; i++) {
+    t = t * 10;
+    x = (uint)(int)t;
+    if (x > 9) {
+      x = 9;
+    }
+    t = t - (int)t;
+    cputc(fd, digits[x], bgcolor, wdcolor);
+  }
+}
+
 void
 cprintf(int fd, int bgcolor, int wdcolor, char *fmt, ...)
 {
@@ -71,6 +109,11 @@ cprintf(int fd, int bgcolor, int wdcolor, char *fmt, ...)
       } else if(c == 'c'){
         cputc(fd, *ap ,bgcolor, wdcolor);
         ap++;
+      } else if(c == 'f'){
+        double a;
+        memmove((void*)&a, (void*)ap, 8);
+        cprintfloat(fd, a, bgcolor, wdcolor);
+        ap += 2;
       } else if(c == '%'){
         cputc(fd, c, bgcolor, wdcolor);
       } else {
@@ -116,7 +159,45 @@ printint(int fd, int xx, int base, int sgn)
     putc(fd, buf[i]);
 }
 
-// Print to the given fd. Only understands %d, %x, %p, %s.
+static void
+printfloat(int fd, double t)
+{
+  static char digits[] = "0123456789";
+  char buf[16];
+  int i;
+  uint x;
+
+  if (t < 0) {
+    putc(fd, '-');
+    t = -t;
+  }
+  t += 0.00005;
+  
+  x = (uint)(int)t;
+  t -= (int)t;
+  
+  i = 0;
+  do{
+    buf[i++] = digits[x % 10];
+  }while((x /= 10) != 0);
+
+  while(--i >= 0)
+    putc(fd, buf[i]);
+
+  putc(fd, '.');
+
+  for (i = 0; i < 4; i++) {
+    t = t * 10;
+    x = (uint)(int)t;
+    if (x > 9) {
+      x = 9;
+    }
+    t = t - (int)t;
+    putc(fd, digits[x]);
+  }
+}
+
+// Print to the given fd. Only understands %d, %x, %p, %s, %f.
 void
 printf(int fd, char *fmt, ...)
 {
@@ -153,6 +234,11 @@ printf(int fd, char *fmt, ...)
       } else if(c == 'c'){
         putc(fd, *ap);
         ap++;
+      } else if(c == 'f'){
+        double a;
+        memmove((void*)&a, (void*)ap, 8);
+        printfloat(fd, a);
+        ap += 2;
       } else if(c == '%'){
         putc(fd, c);
       } else {
