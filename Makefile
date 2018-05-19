@@ -180,6 +180,7 @@ UPROGS=\
 	_setenv\
 	_showenv\
 	_loadenv\
+	_cal\
 	
 
 fs.img: mkfs $(UPROGS)
