@@ -7,8 +7,6 @@ main(void)
   static char nbuf[256];
   int fd;
 
-  printf(1, "Test float output(3.6): %f, double output(-1.56): %f\n", (float)3.6, (double)-1.56);
-
   if(fork1() == 0)
     runcmd(parsecmd("msh STARTCOMMAND"));
   wait();

@@ -8,7 +8,7 @@ char Calculatable[2048];
 
 int main(int argc, char* argv[]) {
   if (argc < 2 || (argv[1][0] == '-' && argv[1][1] == 'h')) {
-    printf(1, "Usage: cal CALCULATABLE TARGET");
+    printf(1, "Usage: cal CALCULATABLE TARGET\n");
     exit();
   }
   for (int j = 1; j < argc; j++) {
