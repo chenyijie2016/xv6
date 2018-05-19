@@ -13,6 +13,7 @@ int lastisop = 1;
 int neg = 0;
 int readpoint = 0;
 int lastbrackets = 0;
+int changedneg = 0;
 double gotans = 0;
 double base = 1;
 
@@ -75,13 +76,19 @@ double calculate(char* a, int* ok) {
 		case '-':
 		case 0:
 			if ((*a == '+' || *a == '-') && (lastisop && !lastbrackets)) {
-				neg = (*a == '-');
-				break;
+        if (!changedneg) {
+          neg = (*a == '-');
+          changedneg = 1;
+          break;
+        }
+        *ok = -9;
+				return .0;
 			}
 			if (lastisop && !lastbrackets && *a != '(') {
 				*ok = -8;
 				return .0;
 			}
+      changedneg = 0;
 			// Got num!
 			if (!lastisop) {
 				if (neg) {
@@ -122,6 +129,7 @@ double calculate(char* a, int* ok) {
 			}
 			break;
 		default:
+      changedneg = 0;
 			lastbrackets = 0;
 			lastisop = 0;
 			if (*a == '.') {
