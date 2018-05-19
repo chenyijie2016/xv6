@@ -59,6 +59,18 @@ main(void)
         }
       }
     }
+    if (strprefix(nbuf, "calculator ")) {
+      // replace () with {}
+      int mlen = (int)strlen(nbuf);
+      for (int temp = 0; temp < mlen; temp++) {
+        if (nbuf[temp] == '(') {
+          nbuf[temp] = '{';
+        }
+        if (nbuf[temp] == ')') {
+          nbuf[temp] = '}';
+        }
+      }
+    }
     if (run) {
       if(fork1() == 0)
         runcmd(parsecmd(nbuf));

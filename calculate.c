@@ -1,5 +1,8 @@
 #include "calculate.h"
+#include "types.h"
+#include "stat.h"
 #include "user.h"
+#include "fs.h"
 
 // Consider that strlen(a) is less than 1024;
 double nums[512];

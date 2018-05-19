@@ -666,6 +666,18 @@ STATE mruncmd() {
       }
     }
   }
+  if (strprefix(mcmd, "calculator ")) {
+    // replace () with {}
+    int mlen = (int)strlen(mcmd);
+    for (int temp = 0; temp < mlen; temp++) {
+      if (mcmd[temp] == '(') {
+        mcmd[temp] = '{';
+      }
+      if (mcmd[temp] == ')') {
+        mcmd[temp] = '}';
+      }
+    }
+  }
   if (run) {
     if(fork1() == 0)
       runcmd(parsecmd(mcmd));
