@@ -1,6 +1,6 @@
 struct stat;
 struct rtcdate;
-
+#define NULL (void*)0
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -30,17 +30,38 @@ int setenv(int, char*, char**, unsigned int);
 int getenv(int, void*, char*);
 int cmplt(char*);
 
-// ulib.c
+// CRT operations
+int getcrtc(int, int);
+int setcrtc(int, int);
+int getcurpos();
+int setcurpos(int);
+int geteditstatus();
+int seteditstatus(int);
+int setcrtcc(int,int,int,int);
+
+// file operation
 int stat(char*, struct stat*);
-char* strcpy(char*, char*);
+
+
+
+// memory
 void *memmove(void*, void*, int);
+void* malloc(uint);
+void* realloc(void*, uint);
+void free(void*);
+int memcmp(const void *, const void *, uint );
+void* memset(void*, int, uint);
+void* memcpy(void*, void*, uint);
+
+
+// string
 char* strchr(const char*, char c);
 int strcmp(const char*, const char*);
-void printf(int, char*, ...);
-void cprintf(int, int, int, char*, ...);
-char* gets(char*, int max);
-uint strlen(char*);
-void* memset(void*, int, uint);
-void* malloc(uint);
-void free(void*);
+char* strcat(char* p ,const char* );
+uint strlen(const char*);
+char* strcpy(char*, char*);
+void sprintf(char*, const char*, ...);
+int snprintf(char*, uint, const char*, ...);
+char *strstr(const char*,const char*);
 int atoi(const char*);
+char* itoa(int, char*, unsigned);

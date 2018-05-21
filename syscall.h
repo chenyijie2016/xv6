@@ -28,3 +28,10 @@
 #define SYS_getenv          26
 #define SYS_cmplt           27
 #define SYS_tasklist        28
+#define SYS_getcrtc         29
+#define SYS_setcrtc         30
+#define SYS_getcurpos       31
+#define SYS_setcurpos       32
+#define SYS_geteditstatus   33
+#define SYS_seteditstatus   34
+#define SYS_setcrtcc        35

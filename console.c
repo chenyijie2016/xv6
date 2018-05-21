@@ -10,6 +10,8 @@
 #include "proc.h"
 
 static void consputc(int);
+// For Editor Nano
+int editStatus = 0;
 
 static int panicked = 0;
 static struct {
@@ -302,45 +304,92 @@ void consoleintr(int (*getc)(void)){
   int c, doprocdump = 0;
 
   acquire(&cons.lock);
-  while((c = getc()) >= 0){
-    switch(c){
-    case C('U'):  // Kill line.
-      killLine();
-      break;
-    case C('H'): case '\x7f':  // Backspace
-      if(input.e != input.w)
-        removeChar();
-      break;
-    case KEY_UP:
-      loadPrevHis();
-      break;
-    case KEY_DN:
-      loadNextHis();
-      break;
-    case KEY_LF:
-      if(input.e != input.w){
-        cursorMoveLeft();
-        input.e--;
-      }
-      break;
-    case KEY_RT:
-      if(input.d != input.e){
-        cursorMoveRight();
-        input.e++;
-      }
-      break;
-    default:
-      if(c != 0 && input.d-input.r < INPUT_BUF){
-        c = (c == '\r') ? '\n' : c;
-        outputChar(c);
-        if(c == '\n' || c == C('D') || input.d == input.r+INPUT_BUF){
-          input.w = input.d;
-          wakeup(&input.r);
+  while ((c = getc()) >= 0)
+    {
+
+        if (c != 0)
+        {
+            if (editStatus == -1)
+            {
+                switch (c)
+                {
+                    case C('S'):
+                        editStatus = -2;
+                        break;
+                    case C('Q'):
+                        editStatus = -3;
+                        break;
+                    case KEY_UP:
+                        editStatus = -4;
+                        break;
+                    case KEY_DN:
+                        editStatus = -5;
+                        break;
+                    case KEY_LF:
+                        editStatus = -6;
+                        break;
+                    case KEY_RT:
+                        editStatus = -7;
+                        break;
+                    case 0xd:
+                    case 0xa:
+                        editStatus = -8;
+                        break;
+                    default:
+                        editStatus = c + 256;
+                }
+            } else
+            {
+                switch (c)
+                {
+                    case C('P'):  // Process listing.
+                        // procdump() locks cons.lock indirectly; invoke later
+                        doprocdump = 1;
+                        break;
+                    case C('U'):  // Kill line.
+                        killLine();
+                        break;
+                    case C('H'):
+                    case '\x7f':  // Backspace
+                        if (input.e != input.w)
+                            removeChar();
+                        break;
+                    case KEY_UP:
+                        loadPrevHis();
+                        break;
+                    case KEY_DN:
+                        loadNextHis();
+                        break;
+                    case KEY_LF:
+                        if (input.e != input.w)
+                        {
+                            cursorMoveLeft();
+                            input.e--;
+                        }
+                        break;
+                    case KEY_RT:
+                        if (input.d != input.e)
+                        {
+                            cursorMoveRight();
+                            input.e++;
+                        }
+                        break;
+                    default:
+                        if (c != 0 && input.d - input.r < INPUT_BUF)
+                        {
+                            c = (c == '\r') ? '\n' : c;
+                            outputChar(c);
+                            if (c == '\n' || c == C('D') || input.d == input.r + INPUT_BUF)
+                            {
+                                input.w = input.d;
+                                wakeup(&input.r);
+                            }
+                        }
+                        break;
+                }
+            }
         }
-      }
-      break;
     }
-  }
   release(&cons.lock);
 }
 

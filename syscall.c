@@ -110,6 +110,13 @@ extern int sys_setenv(void);
 extern int sys_getenv(void);
 extern int sys_cmplt(void);
 extern int sys_tasklist(void);
+extern int sys_getcrtc(void);
+extern int sys_setcrtc(void);
+extern int sys_getcurpos(void);
+extern int sys_setcurpos(void);
+extern int sys_geteditstatus(void);
+extern int sys_seteditstatus(void);
+extern int sys_setcrtcc(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]      sys_fork,
@@ -141,6 +148,13 @@ static int (*syscalls[])(void) = {
 [SYS_getenv]    sys_getenv,
 [SYS_cmplt]     sys_cmplt,
 [SYS_tasklist]  sys_tasklist,
+[SYS_getcrtc] sys_getcrtc,
+[SYS_setcrtc] sys_setcrtc,
+[SYS_getcurpos] sys_getcurpos,
+[SYS_setcurpos] sys_setcurpos,
+[SYS_geteditstatus] sys_geteditstatus,
+[SYS_seteditstatus] sys_seteditstatus,
+[SYS_setcrtcc] sys_setcrtcc,
 };
 
 void
